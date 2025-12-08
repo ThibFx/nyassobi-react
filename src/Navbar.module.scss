@@ -13,7 +13,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: rem;
   padding: 1.25rem clamp(1.5rem, 6vw, 4rem) 0;
   box-sizing: border-box;
 
@@ -53,11 +53,15 @@
   font-size: 24px;
   padding: 15px;
   color: #ffffff;
-  transition: color 0.2s ease, filter 0.2s ease;
+
+  transition: 0.3s;
 
   &:hover {
-    color: #e8e8e8;
-    filter: drop-shadow(0 0 5px #282828);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 
   @media (max-width: 811px) {
@@ -74,13 +78,9 @@
   border-left: #ed5e24 10px solid;
   border-right: #ed5e24 10px solid;
 
-  &:hover {
-    border-left: #ffffff 10px solid;
-    border-right: #ffffff 10px solid;
-  }
-
   &:hover .dropdownContent {
-    display: block;
+    top: calc(100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
   }
 
   @media (max-width: 811px) {
@@ -89,19 +89,20 @@
 }
 
 .dropdownContent {
-  display: none;
+  transition: 0.2s;
+  clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
   position: absolute;
   top: calc(100% - 10px);
   left: -10px;
-  
+
   width: 100%;
 
   z-index: 5;
   background: #ed5e24;
   border-radius: 0 0 30px 30px;
-  border-left: #ffffff 10px solid;
-  border-right: #ffffff 10px solid;
-  border-bottom: #ffffff 10px solid;
+  border-left: #ed5e24 10px solid;
+  border-right: #ed5e24 10px solid;
+  border-bottom: #ed5e24 10px solid;
 
   @media (max-width: 811px) {
     position: static;
@@ -119,7 +120,7 @@
   background: transparent;
   border: none;
   padding: 0.5rem;
-  margin: 0;
+  margin: 0.5rem;
   cursor: pointer;
   flex-direction: column;
   gap: 0.4rem;
@@ -128,7 +129,6 @@
 
   @media (max-width: 811px) {
     display: flex;
-    margin: auto;
   }
 }
 
@@ -140,7 +140,8 @@
 .menuToggleLine {
   width: 28px;
   height: 3px;
-  background-color: #ff8a5b;
+  background-color: #ed5e24;
+  filter: brightness(0.6);
   border-radius: 999px;
   transition: transform 0.3s ease, opacity 0.2s ease, width 0.3s ease;
 }
@@ -170,26 +171,32 @@
 
   @media (max-width: 811px) {
     position: absolute;
-    top: calc(100% + 0.75rem);
+    top: calc(100%);
     left: 0;
-    width: 100%;
+
+    width: calc(100% - 25px / 2);
+
     padding: 16rem clamp(1rem, 6vw, 1.75rem) 1.75rem;
     box-sizing: border-box;
-    display: none;
     flex-direction: column;
-    gap: 0.75rem;
-    background: rgba(9, 13, 23, 0.92);
-    backdrop-filter: blur(12px);
+    gap: 0.5rem;
+
+    background: rgba(237, 93, 36, 0.92);
+    backdrop-filter: blur(8px);
     border-radius: 18px;
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
 
     z-index: 2;
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+    display: flex;
+
+    transition: 0.2s;
   }
 }
 
 .menuMobilePanelOpen {
   @media (max-width: 811px) {
-    display: flex;
+    top: calc(100% + 0.75rem);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
   }
 
   :global(a) {
@@ -211,20 +218,24 @@
 }
 
 .active .item {
-  color: #59baaf;
+  color: #83dbd3;
+
+  &:hover {
+    filter: drop-shadow(0 0 5px rgba(131, 219, 212, 0.5));
+  }
+}
+
+.menuMobileItem .item {
+  padding: 5px 0;
+
+   &:active {
+    transform: scale(1);
+  }
 }
 
 .logo img {
   width: 200px;
 }
 
-.separator,
-.item,
-.menuDropdown,
-.menuMobilePanel {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
 @media (max-width: 1280px) {
-
 }
