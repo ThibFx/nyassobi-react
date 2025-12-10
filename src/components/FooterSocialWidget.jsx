@@ -13,8 +13,8 @@ const SOCIAL_LINKS = [
   { href: "mailto:nyassobi.association@gmail.com", icon: faEnvelope, label: "E-mail" },
 ];
 
-function FooterSocialWidget({ wrapperClassName = "" }) {
-  const wrapperClasses = [footerStyles["footer-social-icons"], wrapperClassName]
+function FooterSocialWidget({ wrapperClassName = "", blueIcons = false }) {
+  const wrapperClasses = [footerStyles["footer-social-icons"], blueIcons ? footerStyles["social-icon-blue"] : "", wrapperClassName]
     .filter(Boolean)
     .join(" ");
 
