@@ -2,7 +2,7 @@ import FooterSocialWidget from "./FooterSocialWidget";
 
 function NyassoSocial() {
 
-  return (<FooterSocialWidget/>);
+  return (<FooterSocialWidget blueIcons={true}/>);
 }
 
 export default NyassoSocial;
