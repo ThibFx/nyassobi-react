@@ -9,15 +9,16 @@
     filter: drop-shadow(0px 6px 22.9px rgba(0, 0, 0, 0.25));
 
     pointer-events: none;
+    display: none !important;
 }
 
 
 .waveJoinOrganization-clip {
-
     mask-image: url("./svg.svg");
     mask-mode: luminance;
     mask-repeat: no-repeat;
     mask-size: 100% 100%;
+    pointer-events: none;
 
     /*background: red;*/
 
@@ -73,15 +74,9 @@
     .adhesion-text,
     .waveJoinOrganization-clip,
     .waveJoinOrganization-2 {
-        display: none !important;
         pointer-events: none;
-        visibility: hidden;
+        display: none;
     }
-}
-
-.waveJoinOrganization-clip:hover .idolCat {
-    transform: translateY(-12px); /* ou une autre animation comme rotate, scale, etc. */
-    transition: transform 0.1s ease-out;
 }
 
 .adhesion-text {
@@ -90,6 +85,34 @@
     z-index: 4;
     top: 185px;
     width: 39vw;
-
-    pointer-events: none;
 }
+
+.wavePath {
+    pointer-events: visiblePainted; 
+    transition: fill .2s ease;
+}
+
+.isHovered {
+  cursor: pointer;
+  background: red;
+}
+
+.isHovered .idolCat {
+  animation: bounce 0.3s infinite alternate ease-out;
+}
+
+.isHovered .wavePath {
+  fill: #4abaaf;
+  transition: .2s ease;
+}
+
+.isHovered .adhesion-text {
+  opacity: 1;
+}
+
+@keyframes bounce {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-20px); }
+}
+
+
