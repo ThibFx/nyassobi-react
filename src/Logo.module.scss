@@ -1,31 +1,58 @@
 .nyassobi-logo {
-    position: absolute;
-    z-index: 4;
+  position: absolute;
+  z-index: 4;
 
-    left: 8.5vw;
-    top: 30px;
+  left: 8.5vw;
+  top: 30px;
+
+  z-index: 100;
 }
 
 .logo {
-    img {
-        width: 400px;
+  transition: 0.3s;
 
-        @media (max-width: 811px) {
-            width: 80vmin;
-        }
-    }
-    &:hover {
-        filter: drop-shadow(0 0 10px #ff895b61);
-    }
+  img {
+    width: 400px;
+  }
 
+  &:hover {
+    filter: drop-shadow(0 0 10px rgba(131, 219, 212, 0.8));
+    transform: rotate(-2deg);
+  }
 
+  &:active {
+    filter: drop-shadow(0 0 10px rgba(131, 219, 212, 0.8));
+    transform: rotate(-2deg) scale(0.9);
+  }
 }
 
 @media (max-width: 1280px) {
-
-.nyassobi-logo {
+  .nyassobi-logo {
     left: 5.5vw;
-    top: 125px;
+    top: 75px;
+  }
 }
 
+@media (max-width: 811px) {
+   .nyassobi-logo {
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    position: fixed;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    align-content: center;
+
+    z-index: 8;
+  }
+
+  .logo img {
+    width: 200px;
+    margin-right: 20px;
+    margin-top: 10px;
+  }
 }

@@ -1,19 +1,8 @@
 .waveHeader {
-    position: absolute;
-    top: 0;
-
-    z-index: 3;
-
-    width: 100vw;
-    min-height: 175px;
-
-    pointer-events: none;
-}
-
-@media (max-width: 1280px) {
-
- .waveHeader {
-    height: 250px;
- }
-  
+  position: absolute;
+  top: 0;
+  z-index: 3;
+  width: 100vw;
+  min-height: 175px;
+  pointer-events: none;
 }

@@ -22,7 +22,7 @@ function Header() {
         <Navbar/>
         <NewMemberButton/>
         <ScrollRestoration/> */}
-        <div style={{position: "relative", width:"100vw"}}>
+        <div style={{position: "relative", width:"100vw"}} className={styles['header']}>
             <div style={{position: "relative", width:"100vw"}}>
                 <WaveHeader/>
                 <Logo/>
