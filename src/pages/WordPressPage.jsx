@@ -766,6 +766,16 @@ function WordPressPage() {
   return (<>
     <div className={styles.pageViewport}>
       <article className={styles.articleCard}>
+        <div className={styles.articleContent}>
+          {parsedContent ?? null}
+        </div>
+      </article>
+    </div>
+    <Footer/>
+  </>);
+}
+
+/* 
         <header className={styles.articleHeader}>
           {node.title ? <TitleNyasso title={node.title} /> : null}
           {node.featuredImage?.node?.sourceUrl ? (
@@ -778,13 +788,6 @@ function WordPressPage() {
             </figure>
           ) : null}
         </header>
-        <div className={styles.articleContent}>
-          {parsedContent ?? null}
-        </div>
-      </article>
-    </div>
-    <Footer/>
-  </>);
-}
+*/
 
 export default WordPressPage;

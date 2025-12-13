@@ -69,8 +69,7 @@ function HomePage() {
             <div className={styles['mainContent']}>
                 <div className={styles['homePage']}>
                     <TitleNyasso title="C'est quoi Nyassobi ?" subtitle="Quelques explications rapides !"/>
-                    <div className={styles['homeScroller']} dangerouslySetInnerHTML={{__html: settings.introTextNyassobi}}>
-                    </div>
+                    <p className={styles['text']} dangerouslySetInnerHTML={{__html: settings.introTextNyassobi}}></p>
 
                     <div className={styles['SpacerSvgSplash']}></div>
                     

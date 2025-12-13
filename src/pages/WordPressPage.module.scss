@@ -173,10 +173,15 @@
   text-align: left;
 }
 
+.articleContent figure {
+  margin: 5px 0px;
+}
+
 .articleContent img,
 .articleContent iframe,
 .articleContent video {
-  max-width: 100%;
+  width: 100%;
+  height: auto;
   border-radius: 18px;
 }
 
