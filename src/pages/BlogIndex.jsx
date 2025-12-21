@@ -48,6 +48,7 @@ function BlogIndex() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "fr-FR"));
   }, [posts]);
 
+  /* multi filtres
   const toggleCategory = useCallback((slug) => {
     setSelectedCategories((current) => {
       if (current.includes(slug)) {
@@ -57,6 +58,18 @@ function BlogIndex() {
     });
     setCurrentPage(1);
   }, []);
+  */
+
+  // uniquement un filtre
+  const toggleCategory = useCallback((slug) => {
+  setSelectedCategories((current) => {
+    if (current.includes(slug)) {
+      return [];
+    }
+    return [slug];
+  });
+  setCurrentPage(1);
+}, []);
 
   const handleResetFilters = useCallback(() => {
     setSelectedCategories([]);
