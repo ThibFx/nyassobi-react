@@ -75,8 +75,8 @@
 .menuDropdown {
   position: relative;
   border-radius: 30px 30px 0 0;
-  border-left: #ed5e24 10px solid;
-  border-right: #ed5e24 10px solid;
+  border-left: transparent 10px solid;
+  border-right: transparent 10px solid;
 
   &:hover .dropdownContent {
     top: calc(100%);
@@ -100,9 +100,9 @@
   z-index: 5;
   background: #ed5e24;
   border-radius: 0 0 30px 30px;
-  border-left: #ed5e24 10px solid;
-  border-right: #ed5e24 10px solid;
-  border-bottom: #ed5e24 10px solid;
+  border-left: transparent 10px solid;
+  border-right: transparent 10px solid;
+  border-bottom: transparent 10px solid;
 
   @media (max-width: 811px) {
     position: static;
