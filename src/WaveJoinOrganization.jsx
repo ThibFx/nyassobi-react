@@ -130,7 +130,8 @@ function WaveJoinOrganization() {
         <img
           ref={textRef}
           className={styles["adhesion-text"]}
-          src={"./adhesion_text_fr.png"}
+          src="/adhesion_text_fr.png"
+          alt="Adhésion"
         />
       </Link>
     </div>
