@@ -37,7 +37,7 @@ function LegalsMentionPage() {
                         9 rue du Bois, Sauvry-Haut <br/>
                         58270 Saint-Benin d’Azy – France <br/>
                         Mail : contact@studio-startingames.com <br/>
-                        Site : <a href="www.studio-startingames.com">www.studio-startingames.com</a> <br/>
+                        Site : <a href="http://www.studio-startingames.com" target="_blank">www.studio-startingames.com</a> <br/>
                         <br/>
                         Association loi 1901, <br/>
                         RNA : W583004763 <br/><br/>
@@ -48,7 +48,7 @@ function LegalsMentionPage() {
                         55, rue Joseph Hue <br/>
                         76250 Déville-lès-Rouen – France <br/>
                         Mail : {settings.contactEmail} <br/>
-                        Site : <a href="www.nyassobi.fr">www.nyassobi.fr</a> <br/>
+                        Site : <a href="https://www.nyassobi.fr" target="_blank">www.nyassobi.fr</a> <br/>
                         <br/>
                         Association loi 1901, <br/>
                         RNA : W763021178 <br/><br/>
@@ -60,7 +60,7 @@ function LegalsMentionPage() {
                         <strong>OVH</strong> <br/>
                         2 rue Kellermann <br/>
                         59100 Roubaix – France <br/>
-                        Site : <a href="www.ovh.com">www.ovh.com</a> <br/>
+                        Site : <a href="https://www.ovh.com" target="_blank">www.ovh.com</a> <br/>
                     </p>
                     
                     <TitleNyasso subtitle="Conditions d’utilisation"/>
