@@ -59,7 +59,9 @@ npm run --silent build || echec "compilation"
 
 etape "Envoi sur la Pi"
 ARCHIVE="$(mktemp -d)/nyassobi-site.tgz"
-tar -czf "$ARCHIVE" -C dist . || echec "archive"
+# Sans les attributs étendus de macOS, que tar sur la Pi signalerait un par un.
+COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata -czf "$ARCHIVE" -C dist . 2>/dev/null \
+  || tar -czf "$ARCHIVE" -C dist . || echec "archive"
 scp -q "$ARCHIVE" "$HOTE:/tmp/nyassobi-site.tgz" \
   && scp -q deploy/compose.yml "$HOTE:/tmp/nyassobi-site-compose.yml" \
   && scp -q deploy/nginx.conf "$HOTE:/tmp/nyassobi-site-nginx.conf" \
