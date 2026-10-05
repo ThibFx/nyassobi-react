@@ -9,6 +9,7 @@ const VALID = {
   lastName: "Exemple",
   birthDate: "2000-05-12",
   email: "camille@example.org",
+  discordUsername: "",
   reducedRate: false,
   acceptsRules: true,
   acceptsPrivacy: true,
@@ -38,6 +39,17 @@ describe("validateMembership", () => {
     const errors = validateMembership({ ...VALID, email: "camille@", birthDate: "1850-01-01" });
     expect(errors.email).toBeDefined();
     expect(errors.birthDate).toBeDefined();
+  });
+});
+
+describe("pseudo Discord", () => {
+  it("est facultatif, et accepte la forme avec @", () => {
+    expect(validateMembership(VALID).discordUsername).toBeUndefined();
+    expect(validateMembership({ ...VALID, discordUsername: "@Neko_Test.42" }).discordUsername).toBeUndefined();
+  });
+
+  it("refuse ce qui ne peut pas être un pseudo Discord", () => {
+    expect(validateMembership({ ...VALID, discordUsername: "neko test#1234" }).discordUsername).toBeDefined();
   });
 });
 

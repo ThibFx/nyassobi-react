@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type FormEvent } from "react";
 
-import { membershipOpenQuery, MembershipUnavailable, submitMembership, useSettings } from "@/lib/content";
+import { membershipOpenQuery, MembershipUnavailable, submitMembership, useFees, useSettings } from "@/lib/content";
 import { Nybi } from "@/nybi/Nybi";
 import { ButtonLink, buttonClass, SmartLink } from "@/ui/Button";
 import { cn } from "@/ui/cn";
@@ -17,6 +17,7 @@ const EMPTY = {
   lastName: "",
   birthDate: "",
   email: "",
+  discordUsername: "",
   reducedRate: false,
   acceptsRules: false,
   acceptsPrivacy: false,
@@ -46,6 +47,8 @@ export function validateMembership(values: Values, parental: File | null = null)
   if (age === null) errors.birthDate = "Indique ta date de naissance.";
   else if (age < 0 || age > 120) errors.birthDate = "Cette date ne semble pas juste.";
   if (!EMAIL.test(values.email.trim())) errors.email = "Cette adresse e-mail ne semble pas valide.";
+  const discord = values.discordUsername.trim().replace(/^@/, "").toLowerCase();
+  if (discord && !/^[a-z0-9_.]{2,32}$/.test(discord)) errors.discordUsername = "Un pseudo Discord ne contient que des lettres, des chiffres, des points et des tirets bas.";
   if (age !== null && age >= 0 && age < 18 && !parental) errors.parental = "Joins l'autorisation parentale signée.";
   if (!values.acceptsRules) errors.acceptsRules = "Il faut avoir lu les statuts et le règlement.";
   if (!values.acceptsPrivacy) errors.acceptsPrivacy = "Il faut accepter le traitement de tes données pour adhérer.";
@@ -59,6 +62,7 @@ export function validateMembership(values: Values, parental: File | null = null)
  */
 export function MembershipForm() {
   const settings = useSettings();
+  const fees = useFees();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [parental, setParental] = useState<File | null>(null);
@@ -71,7 +75,7 @@ export function MembershipForm() {
     setValues((current) => ({ ...current, [name]: value }));
     if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined }));
   };
-  const text = (name: "pseudo" | "firstName" | "lastName" | "birthDate" | "email") => ({
+  const text = (name: "pseudo" | "firstName" | "lastName" | "birthDate" | "email" | "discordUsername") => ({
     name,
     value: values[name],
     onChange: (event: { target: { value: string } }) => set(name, event.target.value),
@@ -99,6 +103,7 @@ export function MembershipForm() {
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         email: input.email.trim(),
+        discordUsername: input.discordUsername.trim().replace(/^@/, "").toLowerCase(),
         // Un mineur relève toujours du tarif réduit.
         reducedRate: input.reducedRate || minor,
         parentalAuthorization,
@@ -174,6 +179,16 @@ export function MembershipForm() {
             {...text("email")}
           />
         </div>
+        <TextField
+          label="Pseudo Discord"
+          optional
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="ton_pseudo"
+          hint="Pour recevoir le rôle « Adhérent » sur notre serveur dès ta cotisation réglée. Le CA ne le voit pas."
+          error={errors.discordUsername}
+          {...text("discordUsername")}
+        />
       </fieldset>
 
       <AnimatePresence initial={false}>
@@ -205,8 +220,8 @@ export function MembershipForm() {
         <legend className="mb-3 font-display text-[21px] font-semibold text-ink">Cotisation</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
-            { reduced: false, price: "20 €", title: "Tarif normal", detail: "par an, du 1er septembre au 31 août" },
-            { reduced: true, price: "15 €", title: "Tarif réduit", detail: "mineur·e, étudiant·e, demandeur·deuse d'emploi, aides sociales" },
+            { reduced: false, price: `${fees.normal} €`, title: "Tarif normal", detail: "par an, du 1er septembre au 31 août" },
+            { reduced: true, price: `${fees.reduced} €`, title: "Tarif réduit", detail: "mineur·e, étudiant·e, demandeur·deuse d'emploi, aides sociales" },
           ].map((option) => {
             const checked = (values.reducedRate || minor) === option.reduced;
             const disabled = minor && !option.reduced;

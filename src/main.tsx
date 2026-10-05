@@ -1,7 +1,7 @@
 import "./styles/index.css";
 
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, type Query } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { MotionConfig } from "motion/react";
 import { lazy, StrictMode } from "react";
@@ -18,6 +18,7 @@ const WpPage = lazy(() => import("./pages/WpPage"));
 const AteliersPage = lazy(() => import("./pages/AteliersPage"));
 const AtelierPage = lazy(() => import("./pages/AtelierPage"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
+const CotisationPage = lazy(() => import("./pages/CotisationPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +51,14 @@ function safeStorage(): Storage | undefined {
   }
 }
 
+/**
+ * Seuls les contenus publics sont gardés dans le navigateur : ni l'état d'un
+ * paiement (dont le lien personnel sert de clé), ni l'ouverture des adhésions.
+ */
+function shouldDehydrateQuery(query: Query) {
+  return query.state.status === "success" && !["cotisation", "membership-open"].includes(String(query.queryKey[0]));
+}
+
 const router = createBrowserRouter([
   {
     element: <Layout />,
@@ -61,6 +70,7 @@ const router = createBrowserRouter([
       { path: "ateliers", element: <AteliersPage /> },
       { path: "ateliers/:slug", element: <AtelierPage /> },
       { path: "mentions-legales", element: <LegalPage /> },
+      { path: "cotisation/:jeton", element: <CotisationPage /> },
       { path: "*", element: <WpPage /> },
     ],
   },
@@ -68,7 +78,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 7 * 24 * 60 * 60_000, buster: "v2" }}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 7 * 24 * 60 * 60_000, buster: "v2", dehydrateOptions: { shouldDehydrateQuery } }}>
       <MotionConfig reducedMotion="user">
         <RouterProvider router={router} />
       </MotionConfig>

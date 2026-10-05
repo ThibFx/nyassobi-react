@@ -325,6 +325,8 @@ export interface MembershipInput {
   reducedRate: boolean;
   acceptsRules: boolean;
   acceptsPrivacy: boolean;
+  /** Facultatif : pour recevoir le rôle « Adhérent » sur Discord au paiement. */
+  discordUsername?: string;
   /** Obligatoire pour les mineurs : l'autorisation signée, en base64. */
   parentalAuthorization?: { fileName: string; mimeType: string; base64: string } | null;
 }
@@ -365,4 +367,61 @@ export async function submitMembership(input: MembershipInput) {
     if (error instanceof Error && /Cannot query field|Unknown type/i.test(error.message)) throw new MembershipUnavailable(error.message);
     throw error;
   }
+}
+
+/* ----------------------------------------------------------- Cotisation */
+
+export interface Fees {
+  normal: number;
+  reduced: number;
+}
+
+/** Tarifs réglés dans WordPress ; ceux-ci servent tant qu'il n'a pas répondu. */
+export const DEFAULT_FEES: Fees = { normal: 20, reduced: 15 };
+
+export const feesQuery = queryOptions({
+  queryKey: ["fees", WRITE_GRAPHQL_URL],
+  queryFn: async ({ signal }) => {
+    try {
+      const data = await gql<{ nyassobiMembershipFees: Fees }>(`{ nyassobiMembershipFees { normal reduced } }`, {}, signal, WRITE_GRAPHQL_URL);
+      return data.nyassobiMembershipFees;
+    } catch {
+      return DEFAULT_FEES;
+    }
+  },
+  staleTime: 30 * 60_000,
+});
+
+export function useFees(): Fees {
+  return useQuery(feesQuery).data ?? DEFAULT_FEES;
+}
+
+export interface Cotisation {
+  status: "a_payer" | "payee" | "introuvable";
+  amount: number | null;
+  reducedRate: boolean | null;
+  season: string | null;
+  cardUrl: string | null;
+  cardAutomatic: boolean | null;
+  paypalUrl: string | null;
+}
+
+/** Page de paiement personnelle : le jeton du lien reçu par e-mail en est la clé. */
+export function cotisationQuery(token: string) {
+  return queryOptions({
+    queryKey: ["cotisation", token],
+    queryFn: async ({ signal }) => {
+      const data = await gql<{ nyassobiCotisation: Cotisation }>(
+        `query Cotisation($token: String!) { nyassobiCotisation(token: $token) { status amount reducedRate season cardUrl cardAutomatic paypalUrl } }`,
+        { token },
+        signal,
+        WRITE_GRAPHQL_URL,
+      );
+      return data.nyassobiCotisation;
+    },
+    // Jamais gardé dans le navigateur : l'état du paiement change, et le
+    // jeton n'a pas à traîner dans le stockage local.
+    gcTime: 0,
+    staleTime: 0,
+  });
 }
