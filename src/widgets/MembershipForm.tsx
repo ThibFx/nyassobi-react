@@ -159,7 +159,7 @@ export function MembershipForm() {
         <TextField
           label="Pseudo"
           autoComplete="nickname"
-          hint="C'est le seul élément que le conseil d'administration verra pour voter."
+          hint="C'est le seul élément que le conseil d'administration verra pour voter, et le nom avec lequel on t'écrira."
           error={errors.pseudo}
           {...text("pseudo")}
         />
