@@ -34,7 +34,10 @@ export function Layout() {
           Bac à sable : les formulaires partent vers un WordPress de test, rien n'est envoyé pour de vrai.
         </p>
       )}
-      <ScrollRestoration />
+      {/* À l'ouverture d'une page (retour de HelloAsso, lien d'un e-mail), la
+          clé « default » mélangerait les positions de pages différentes : on
+          range alors la position par adresse. */}
+      <ScrollRestoration getKey={(location) => (location.key === "default" ? location.pathname + location.search : location.key)} />
     </div>
   );
 }
