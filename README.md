@@ -37,6 +37,9 @@ envoie le site sur la Pi (alias SSH `nv-pi`), où nginx le sert sur le port 8503
 http://nv-pi:8503, ou http://nv-pi:8503 par Tailscale. Les trois dernières
 versions sont gardées dans `~/nyassobi-site/www/releases` ; la bascule est instantanée.
 
+`--bac-a-sable` (`-BacASable` sous Windows) déploie plutôt une copie sur le port 8505, dont les
+formulaires partent vers le WordPress de test du bac à sable (voir le dépôt du plugin).
+
 ## Organisation
 
 - `src/lib/content.ts` : toutes les requêtes WordPress, mises en cache par React Query
