@@ -25,6 +25,18 @@ formulaires de contact et d'adhésion écrivent.
 | `npm run typecheck` | TypeScript                             |
 | `npm test`          | tests (Vitest)                         |
 
+## Version de travail sur la Raspberry Pi
+
+```bash
+./scripts/deployer.sh        # Mac / Linux
+.\scripts\deployer.ps1       # Windows
+```
+
+Le script vérifie que tout est validé et poussé sur GitHub, lance les tests, compile, puis
+envoie le site sur la Pi (alias SSH `nv-pi`), où nginx le sert sur le port 8503 :
+http://nv-pi:8503, ou http://nv-pi:8503 par Tailscale. Les trois dernières
+versions sont gardées dans `~/nyassobi-site/www/releases` ; la bascule est instantanée.
+
 ## Organisation
 
 - `src/lib/content.ts` : toutes les requêtes WordPress, mises en cache par React Query

@@ -1,0 +1,84 @@
+# Compile le site et le met en ligne sur la Raspberry Pi, depuis un PC Windows.
+# Pendant de scripts/deployer.sh (Mac), memes etapes et memes garde-fous.
+#
+#   .\scripts\deployer.ps1                 # tests, puis deploiement
+#   .\scripts\deployer.ps1 -SansTests      # deploiement direct
+#   .\scripts\deployer.ps1 -Hote nv-pi     # autre alias SSH
+#
+# Ce fichier reste en ASCII: Windows PowerShell 5.1 lit les scripts sans BOM
+# comme de l'ANSI, et les lettres accentuees y casseraient les chaines.
+
+param(
+  [string]$Hote = "nv-pi",
+  [switch]$SansTests
+)
+
+# Pas de mode "Stop": sous PowerShell 5.1, un simple message de git ou de npm
+# sur la sortie d'erreur deviendrait une erreur fatale. Chaque commande est
+# jugee sur son code de retour ($LASTEXITCODE).
+$ErrorActionPreference = "Continue"
+$racine = Resolve-Path (Join-Path $PSScriptRoot "..")
+Set-Location $racine
+
+function Etape([string]$texte) { Write-Host "`n### $texte" -ForegroundColor Cyan }
+function Echec([string]$texte) { Write-Host "ECHEC: $texte" -ForegroundColor Red; exit 1 }
+
+$branche = (git rev-parse --abbrev-ref HEAD).Trim()
+
+Etape "Verifications ($branche vers $Hote)"
+$enCours = git status --porcelain
+if ($enCours) {
+  git status --short
+  Echec "des modifications ne sont pas validees (git commit). On ne deploie que du code valide."
+}
+
+# Ce qui n'est pas pousse n'existe que sur ce PC: l'autre machine ne le verrait pas.
+$amont = (git for-each-ref --format="%(upstream:short)" "refs/heads/$branche" | Out-String).Trim()
+if (-not $amont) { Echec "la branche $branche n'a jamais ete poussee. Lancer: git push -u origin $branche" }
+git fetch -q origin 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { Echec "GitHub injoignable (git fetch)." }
+$enRetard = [int](git rev-list --count "HEAD..$amont")
+$enAvance = [int](git rev-list --count "$amont..HEAD")
+if ($enRetard -gt 0) { Echec "$enRetard commit(s) sur GitHub absents d'ici (travail fait sur l'autre PC ?). Lancer: git pull" }
+if ($enAvance -gt 0) { Echec "$enAvance commit(s) pas encore pousses. Lancer: git push" }
+Write-Host "  a jour avec $amont"
+
+$majeure = [int]((node -p "process.versions.node.split('.')[0]") | Out-String).Trim()
+if ($majeure -lt 22) { Echec "Node $majeure installe, il faut Node 22 ou plus (https://nodejs.org)." }
+
+Etape "Dependances"
+npm ci --no-audit --no-fund --silent
+if ($LASTEXITCODE -ne 0) { Echec "npm ci" }
+
+if (-not $SansTests) {
+  Etape "Tests"
+  npm run --silent lint
+  if ($LASTEXITCODE -ne 0) { Echec "ESLint" }
+  npm run --silent typecheck
+  if ($LASTEXITCODE -ne 0) { Echec "verification des types" }
+  npm test --silent
+  if ($LASTEXITCODE -ne 0) { Echec "tests" }
+}
+
+Etape "Compilation"
+npm run --silent build
+if ($LASTEXITCODE -ne 0) { Echec "compilation" }
+
+Etape "Envoi sur la Pi"
+$archive = Join-Path $env:TEMP "nyassobi-site.tgz"
+# tar est fourni avec Windows 10 et 11.
+tar -czf $archive -C dist .
+if ($LASTEXITCODE -ne 0) { Echec "archive" }
+scp -q $archive "${Hote}:/tmp/nyassobi-site.tgz"
+if ($LASTEXITCODE -ne 0) { Echec "copie vers $Hote (acces SSH ?)" }
+scp -q "deploy/compose.yml" "${Hote}:/tmp/nyassobi-site-compose.yml"
+scp -q "deploy/nginx.conf" "${Hote}:/tmp/nyassobi-site-nginx.conf"
+scp -q "scripts/deployer-pi.sh" "${Hote}:/tmp/nyassobi-site-deployer.sh"
+if ($LASTEXITCODE -ne 0) { Echec "copie des fichiers de deploiement" }
+Remove-Item $archive
+
+Etape "Mise en ligne"
+$version = (git rev-parse --short HEAD).Trim()
+ssh $Hote "bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version"
+if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
+Write-Host "`nEn ligne: http://nv-pi:8503 (Tailscale: http://nv-pi:8503)" -ForegroundColor Green
