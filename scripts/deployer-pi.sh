@@ -32,6 +32,11 @@ tar -xzf "$ARCHIVE" -C "$CIBLE"
 [ -f "$CIBLE/index.html" ] || { echo "archive sans index.html"; rm -rf "$CIBLE"; exit 1; }
 rm -f "$ARCHIVE"
 
+# Un onglet ouvert avant ce déploiement demandera encore les fichiers de son
+# ancienne version en changeant de page : on les garde une semaine. cp -p
+# conserve leur date, pour qu'ils finissent par vieillir et disparaître.
+find "$DOSSIER/www/releases" -path "*/assets/*" -type f -mtime -7 ! -path "$CIBLE/*" -exec cp -pn {} "$CIBLE/assets/" \; 2>/dev/null || true
+
 # Bascule atomique : le lien est relatif pour rester valable dans le conteneur.
 ln -sfn "releases/$NOM" "$DOSSIER/www/current.nouveau"
 mv -Tf "$DOSSIER/www/current.nouveau" "$DOSSIER/www/current"

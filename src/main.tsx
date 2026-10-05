@@ -8,6 +8,7 @@ import { lazy, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
+import { ErrorPage } from "./layout/ErrorPage";
 import { Layout } from "./layout/Layout";
 import HomePage from "./pages/HomePage";
 
@@ -19,6 +20,22 @@ const AteliersPage = lazy(() => import("./pages/AteliersPage"));
 const AtelierPage = lazy(() => import("./pages/AtelierPage"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 const CotisationPage = lazy(() => import("./pages/CotisationPage"));
+
+/**
+ * Après un déploiement, un onglet resté ouvert peut demander un morceau de
+ * page qui n'existe plus. Vite le signale par cet événement : on recharge la
+ * page une fois pour prendre la nouvelle version, sans boucler si ça échoue.
+ */
+window.addEventListener("vite:preloadError", (event) => {
+  try {
+    if (sessionStorage.getItem("nyassobi-recharge") === location.href) return;
+    sessionStorage.setItem("nyassobi-recharge", location.href);
+  } catch {
+    // Stockage indisponible : on recharge quand même, une seule fois par chargement.
+  }
+  event.preventDefault();
+  location.reload();
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +79,7 @@ function shouldDehydrateQuery(query: Query) {
 const router = createBrowserRouter([
   {
     element: <Layout />,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
       { path: "news", element: <NewsPage /> },
