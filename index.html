@@ -2,12 +2,34 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/jnUk4JWs_400x400.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Association de mise en avant du vtubing en francophonie. </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Ces balises sont lues par Discord, X ou Bluesky, qui n'exécutent pas le
+         JavaScript : c'est ce qui donne un aperçu aux liens partagés. -->
+    <title>Nyassobi · Association du VTubing francophone</title>
+    <meta name="description" content="Nyassobi est une association loi 1901 qui met en avant les VTubers francophones : conventions, événements en ligne, ateliers et VTuber Awards FR." />
+    <meta name="theme-color" content="#e8622f" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Nyassobi" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="Nyassobi · Association du VTubing francophone" />
+    <meta property="og:description" content="Conventions, événements en ligne, ateliers : on fait grandir le VTubing francophone, ensemble." />
+    <meta property="og:image" content="https://admin.nyassobi.fr/wp-content/uploads/2025/12/Nyassobi-Logo-02-1024x576.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- La première requête part vers WordPress : la connexion s'ouvre pendant
+         que le JavaScript se télécharge. -->
+    <link rel="preconnect" href="https://admin.nyassobi.fr" crossorigin />
+    <script>
+      // Thème appliqué avant le premier rendu, pour éviter un éclair blanc en sombre.
+      try {
+        var t = localStorage.getItem("nyassobi-theme");
+        if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
