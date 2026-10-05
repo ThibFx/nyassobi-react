@@ -4,6 +4,7 @@
 #
 #   ./scripts/deployer.sh               # tests, puis déploiement
 #   ./scripts/deployer.sh --sans-tests  # déploiement direct
+#   ./scripts/deployer.sh --bac-a-sable # copie branchée sur le bac à sable (port 8505)
 #   HOTE=autre-alias ./scripts/deployer.sh
 #
 # L'alias SSH `nv-pi` doit mener à la Pi ; par Tailscale, cela marche depuis
@@ -12,7 +13,13 @@ set -uo pipefail
 
 HOTE="${HOTE:-nv-pi}"
 SANS_TESTS=0
-[ "${1:-}" = "--sans-tests" ] && SANS_TESTS=1
+BAC_A_SABLE=0
+for argument in "$@"; do
+  case "$argument" in
+    --sans-tests) SANS_TESTS=1 ;;
+    --bac-a-sable) BAC_A_SABLE=1 ;;
+  esac
+done
 
 cd "$(dirname "$0")/.."
 
@@ -55,7 +62,13 @@ if [ "$SANS_TESTS" -eq 0 ]; then
 fi
 
 etape "Compilation"
-npm run --silent build || echec "compilation"
+if [ "$BAC_A_SABLE" -eq 1 ]; then
+  # Contenus lus sur le vrai WordPress, envois vers celui du bac à sable
+  # (relayé par le nginx du bac à sable, voir le dépôt du plugin).
+  VITE_WRITE_GRAPHQL_URL=/bac-a-sable-graphql VITE_BAC_A_SABLE=1 npm run --silent build || echec "compilation"
+else
+  npm run --silent build || echec "compilation"
+fi
 
 etape "Envoi sur la Pi"
 ARCHIVE="$(mktemp -d)/nyassobi-site.tgz"
@@ -70,5 +83,10 @@ scp -q "$ARCHIVE" "$HOTE:/tmp/nyassobi-site.tgz" \
 rm -f "$ARCHIVE"
 
 etape "Mise en ligne"
+if [ "$BAC_A_SABLE" -eq 1 ]; then
+  ssh "$HOTE" "NYASSOBI_SITE_DIR=\$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD) bac-a-sable" || echec "mise en ligne sur la Pi"
+  printf '\n\033[32mBac à sable : http://nv-pi:8505 (Tailscale : http://nv-pi:8505)\033[0m\n'
+  exit 0
+fi
 ssh "$HOTE" "bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD)" || echec "mise en ligne sur la Pi"
 printf '\n\033[32mEn ligne : http://nv-pi:8503 (Tailscale : http://nv-pi:8503)\033[0m\n'

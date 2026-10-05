@@ -1,13 +1,15 @@
 import { CheckCircle, ShieldCheck, UserCirclePlus } from "@phosphor-icons/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type FormEvent } from "react";
 
-import { MembershipUnavailable, submitMembership, useSettings } from "@/lib/content";
+import { membershipOpenQuery, MembershipUnavailable, submitMembership, useSettings } from "@/lib/content";
 import { Nybi } from "@/nybi/Nybi";
 import { ButtonLink, buttonClass, SmartLink } from "@/ui/Button";
 import { cn } from "@/ui/cn";
 import { Checkbox, FormStatus, TextField } from "@/ui/Field";
+
+import { ParentalUpload, readAsBase64 } from "./ParentalUpload";
 
 const EMPTY = {
   pseudo: "",
@@ -21,7 +23,7 @@ const EMPTY = {
   website: "",
 };
 type Values = typeof EMPTY;
-type Errors = Partial<Record<keyof Values, string>>;
+type Errors = Partial<Record<keyof Values | "parental", string>>;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -35,7 +37,7 @@ export function ageOn(birthDate: string, today = new Date()): number | null {
   return age;
 }
 
-export function validateMembership(values: Values): Errors {
+export function validateMembership(values: Values, parental: File | null = null): Errors {
   const errors: Errors = {};
   if (!values.pseudo.trim()) errors.pseudo = "Indique ton pseudo.";
   if (!values.firstName.trim()) errors.firstName = "Indique ton prénom.";
@@ -44,6 +46,7 @@ export function validateMembership(values: Values): Errors {
   if (age === null) errors.birthDate = "Indique ta date de naissance.";
   else if (age < 0 || age > 120) errors.birthDate = "Cette date ne semble pas juste.";
   if (!EMAIL.test(values.email.trim())) errors.email = "Cette adresse e-mail ne semble pas valide.";
+  if (age !== null && age >= 0 && age < 18 && !parental) errors.parental = "Joins l'autorisation parentale signée.";
   if (!values.acceptsRules) errors.acceptsRules = "Il faut avoir lu les statuts et le règlement.";
   if (!values.acceptsPrivacy) errors.acceptsPrivacy = "Il faut accepter le traitement de tes données pour adhérer.";
   return errors;
@@ -58,6 +61,8 @@ export function MembershipForm() {
   const settings = useSettings();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
+  const [parental, setParental] = useState<File | null>(null);
+  const open = useQuery(membershipOpenQuery);
   const mutation = useMutation({ mutationFn: submitMembership });
   const age = ageOn(values.birthDate);
   const minor = age !== null && age >= 0 && age < 18;
@@ -75,7 +80,7 @@ export function MembershipForm() {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const found = validateMembership(values);
+    const found = validateMembership(values, parental);
     setErrors(found);
     if (Object.keys(found).length) {
       // Après le rendu, pour que les champs portent déjà leur état d'erreur.
@@ -85,15 +90,20 @@ export function MembershipForm() {
     if (values.website) return;
     const { website: _website, ...input } = values;
     void _website;
-    mutation.mutate({
-      ...input,
-      pseudo: input.pseudo.trim(),
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      email: input.email.trim(),
-      // Un mineur relève toujours du tarif réduit.
-      reducedRate: input.reducedRate || minor,
-    });
+    void (async () => {
+      // Le document n'est lu qu'à l'envoi, et seulement pour un mineur.
+      const parentalAuthorization = minor && parental ? { fileName: parental.name, mimeType: parental.type, base64: await readAsBase64(parental) } : null;
+      mutation.mutate({
+        ...input,
+        pseudo: input.pseudo.trim(),
+        firstName: input.firstName.trim(),
+        lastName: input.lastName.trim(),
+        email: input.email.trim(),
+        // Un mineur relève toujours du tarif réduit.
+        reducedRate: input.reducedRate || minor,
+        parentalAuthorization,
+      });
+    })();
   };
 
   if (mutation.isSuccess && mutation.data.success) {
@@ -114,7 +124,17 @@ export function MembershipForm() {
     );
   }
 
-  if (mutation.error instanceof MembershipUnavailable) {
+  if (open.isPending) {
+    return (
+      <div aria-busy="true" aria-label="Chargement du formulaire" className="grid gap-5">
+        {[0, 1, 2].map((index) => (
+          <div key={index} className="skeleton h-[52px] w-full rounded-[16px]" />
+        ))}
+      </div>
+    );
+  }
+
+  if (open.data === false || mutation.error instanceof MembershipUnavailable) {
     return (
       <div className="flex flex-col items-start gap-4 rounded-[30px] bg-accent-wash px-6 py-8">
         <p className="text-ink">
@@ -158,15 +178,26 @@ export function MembershipForm() {
 
       <AnimatePresence initial={false}>
         {minor && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <p className="rounded-[18px] bg-teal-wash px-5 py-4 text-[15.5px] text-ink">
-              Tu as moins de 18 ans : il faudra joindre une{" "}
-              <a href={settings.parentalAgreementUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-ink underline underline-offset-3">
-                autorisation parentale signée
-              </a>{" "}
-              une fois ta demande acceptée. Le tarif réduit s'applique d'office.
-            </p>
-          </motion.div>
+          <motion.fieldset initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <legend className="sr-only">Autorisation parentale</legend>
+            <div className="grid gap-4 rounded-[22px] bg-teal-wash px-5 py-5">
+              <p className="text-[15.5px] text-ink">
+                Tu as moins de 18 ans : il faut l'accord d'un parent. Imprime{" "}
+                <a href={settings.parentalAgreementUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-ink underline underline-offset-3">
+                  l'autorisation parentale
+                </a>
+                , fais-la signer, puis joins-la ici (un scan ou une photo bien lisible). Le tarif réduit s'applique d'office.
+              </p>
+              <ParentalUpload
+                file={parental}
+                error={errors.parental}
+                onChange={(file) => {
+                  setParental(file);
+                  if (errors.parental) setErrors((current) => ({ ...current, parental: undefined }));
+                }}
+              />
+            </div>
+          </motion.fieldset>
         )}
       </AnimatePresence>
 

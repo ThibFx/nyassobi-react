@@ -4,17 +4,26 @@
 # Lancé par scripts/deployer.sh (Mac) ou scripts/deployer.ps1 (Windows), qui
 # compilent le site et envoient ici l'archive, compose.yml et nginx.conf.
 #
-#   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit>
+#   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit>              # version de travail (8503)
+#   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit> bac-a-sable  # copie du bac à sable (8505)
 set -euo pipefail
 
 ARCHIVE="${1:?archive du site attendue}"
 VERSION="${2:-inconnue}"
+MODE="${3:-travail}"
 DOSSIER="${NYASSOBI_SITE_DIR:-$HOME/nyassobi-site}"
+PORT=8503
 GARDER=3
 
 mkdir -p "$DOSSIER/www/releases"
-cp /tmp/nyassobi-site-compose.yml "$DOSSIER/compose.yml"
-cp /tmp/nyassobi-site-nginx.conf "$DOSSIER/nginx.conf"
+if [ "$MODE" = "bac-a-sable" ]; then
+  # Le nginx du bac à sable est décrit dans le dépôt du plugin : on n'y touche pas.
+  PORT=8505
+  [ -f "$DOSSIER/compose.yml" ] || { echo "bac à sable absent : lancer d'abord scripts/bac-a-sable.sh du dépôt du plugin"; exit 1; }
+else
+  cp /tmp/nyassobi-site-compose.yml "$DOSSIER/compose.yml"
+  cp /tmp/nyassobi-site-nginx.conf "$DOSSIER/nginx.conf"
+fi
 
 NOM="$(date +%Y%m%d-%H%M%S)-$VERSION"
 CIBLE="$DOSSIER/www/releases/$NOM"
@@ -29,7 +38,7 @@ mv -Tf "$DOSSIER/www/current.nouveau" "$DOSSIER/www/current"
 echo "### Version en ligne : $NOM"
 
 cd "$DOSSIER"
-docker compose up -d 2>&1 | tail -3
+docker compose up -d site 2>&1 | tail -3
 # nginx relit sa configuration au cas où nginx.conf aurait changé.
 docker compose exec -T site nginx -s reload >/dev/null 2>&1 || true
 
@@ -37,12 +46,12 @@ docker compose exec -T site nginx -s reload >/dev/null 2>&1 || true
 ls -1d www/releases/*/ | sort | head -n -"$GARDER" | xargs -r rm -rf
 
 for i in $(seq 1 15); do
-  if curl -fsS -o /dev/null http://localhost:8503/; then
+  if curl -fsS -o /dev/null "http://localhost:$PORT/"; then
     echo "### Site prêt"
     exit 0
   fi
   sleep 2
 done
-echo "Le site ne répond pas sur le port 8503 :"
+echo "Le site ne répond pas sur le port $PORT :"
 docker compose logs --tail 20 site
 exit 1

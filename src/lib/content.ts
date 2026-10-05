@@ -1,6 +1,6 @@
 import { queryOptions, useQuery, type QueryClient } from "@tanstack/react-query";
 
-import { gql, toSitePath } from "./wp";
+import { gql, toSitePath, WRITE_GRAPHQL_URL } from "./wp";
 
 /* ------------------------------------------------------------------ Types */
 
@@ -308,6 +308,8 @@ export async function sendContactMessage(input: { fullname: string; email: strin
   const data = await gql<{ sendNyassobiContactMessage: { success: boolean; message: string } }>(
     `mutation Send($input: SendNyassobiContactMessageInput!) { sendNyassobiContactMessage(input: $input) { success message } }`,
     { input },
+    undefined,
+    WRITE_GRAPHQL_URL,
   );
   return data.sendNyassobiContactMessage;
 }
@@ -323,7 +325,29 @@ export interface MembershipInput {
   reducedRate: boolean;
   acceptsRules: boolean;
   acceptsPrivacy: boolean;
+  /** Obligatoire pour les mineurs : l'autorisation signée, en base64. */
+  parentalAuthorization?: { fileName: string; mimeType: string; base64: string } | null;
 }
+
+/**
+ * Le WordPress reçoit-il les demandes d'adhésion ? Faux tant que le plugin
+ * n'est pas à jour ou que Discord n'est pas configuré : le site renvoie alors
+ * vers l'ancien formulaire, avant que quiconque ait rempli quoi que ce soit.
+ */
+export const membershipOpenQuery = queryOptions({
+  queryKey: ["membership-open", WRITE_GRAPHQL_URL],
+  queryFn: async ({ signal }) => {
+    try {
+      const data = await gql<{ nyassobiMembershipOpen: boolean }>(`{ nyassobiMembershipOpen }`, {}, signal, WRITE_GRAPHQL_URL);
+      return data.nyassobiMembershipOpen === true;
+    } catch {
+      return false;
+    }
+  },
+  staleTime: 5 * 60_000,
+  // Jamais gardé d'une visite à l'autre : l'ouverture du circuit doit se voir aussitôt.
+  gcTime: 0,
+});
 
 /** Levée quand le WordPress n'a pas encore le circuit d'adhésion du plugin. */
 export class MembershipUnavailable extends Error {}
@@ -333,6 +357,8 @@ export async function submitMembership(input: MembershipInput) {
     const data = await gql<{ submitNyassobiMembership: { success: boolean; message: string } }>(
       `mutation Join($input: SubmitNyassobiMembershipInput!) { submitNyassobiMembership(input: $input) { success message } }`,
       { input },
+      undefined,
+      WRITE_GRAPHQL_URL,
     );
     return data.submitNyassobiMembership;
   } catch (error) {

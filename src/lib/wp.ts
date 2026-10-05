@@ -8,13 +8,22 @@
 
 export const GRAPHQL_URL: string = import.meta.env.VITE_WORDPRESS_GRAPHQL_URL ?? "https://admin.nyassobi.fr/graphql";
 
+/**
+ * Adresse des envois (adhésion, contact). Par défaut la même ; le bac à sable
+ * lit les vrais contenus mais envoie ses formulaires à un WordPress de test.
+ */
+export const WRITE_GRAPHQL_URL: string = import.meta.env.VITE_WRITE_GRAPHQL_URL ?? GRAPHQL_URL;
+
+/** Version de test du site : un bandeau le rappelle sur chaque page. */
+export const IS_SANDBOX = import.meta.env.VITE_BAC_A_SABLE === "1";
+
 /** Racine du WordPress (sans `/graphql`), pour reconnaître ses liens internes. */
-export const WP_ORIGIN = new URL(GRAPHQL_URL).origin;
+export const WP_ORIGIN = new URL(GRAPHQL_URL, typeof window === "undefined" ? "http://localhost" : window.location.origin).origin;
 
 export class WpError extends Error {}
 
-export async function gql<T>(query: string, variables: Record<string, unknown> = {}, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(GRAPHQL_URL, {
+export async function gql<T>(query: string, variables: Record<string, unknown> = {}, signal?: AbortSignal, endpoint = GRAPHQL_URL): Promise<T> {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query, variables }),

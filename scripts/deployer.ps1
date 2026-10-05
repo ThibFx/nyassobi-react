@@ -4,13 +4,15 @@
 #   .\scripts\deployer.ps1                 # tests, puis deploiement
 #   .\scripts\deployer.ps1 -SansTests      # deploiement direct
 #   .\scripts\deployer.ps1 -Hote nv-pi     # autre alias SSH
+#   .\scripts\deployer.ps1 -BacASable      # copie branchee sur le bac a sable (port 8505)
 #
 # Ce fichier reste en ASCII: Windows PowerShell 5.1 lit les scripts sans BOM
 # comme de l'ANSI, et les lettres accentuees y casseraient les chaines.
 
 param(
   [string]$Hote = "nv-pi",
-  [switch]$SansTests
+  [switch]$SansTests,
+  [switch]$BacASable
 )
 
 # Pas de mode "Stop": sous PowerShell 5.1, un simple message de git ou de npm
@@ -61,8 +63,16 @@ if (-not $SansTests) {
 }
 
 Etape "Compilation"
+if ($BacASable) {
+  # Contenus lus sur le vrai WordPress, envois vers celui du bac a sable.
+  $env:VITE_WRITE_GRAPHQL_URL = "/bac-a-sable-graphql"
+  $env:VITE_BAC_A_SABLE = "1"
+}
 npm run --silent build
-if ($LASTEXITCODE -ne 0) { Echec "compilation" }
+$codeCompilation = $LASTEXITCODE
+Remove-Item Env:VITE_WRITE_GRAPHQL_URL -ErrorAction SilentlyContinue
+Remove-Item Env:VITE_BAC_A_SABLE -ErrorAction SilentlyContinue
+if ($codeCompilation -ne 0) { Echec "compilation" }
 
 Etape "Envoi sur la Pi"
 $archive = Join-Path $env:TEMP "nyassobi-site.tgz"
@@ -79,6 +89,12 @@ Remove-Item $archive
 
 Etape "Mise en ligne"
 $version = (git rev-parse --short HEAD).Trim()
+if ($BacASable) {
+  ssh $Hote "NYASSOBI_SITE_DIR=`$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version bac-a-sable"
+  if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
+  Write-Host "`nBac a sable: http://nv-pi:8505 (Tailscale: http://nv-pi:8505)" -ForegroundColor Green
+  exit 0
+}
 ssh $Hote "bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version"
 if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
 Write-Host "`nEn ligne: http://nv-pi:8503 (Tailscale: http://nv-pi:8503)" -ForegroundColor Green
