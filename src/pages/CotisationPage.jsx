@@ -107,7 +107,7 @@ function CotisationPage() {
 
                 <p className={styles.small}>
                   {cotisation.cardAutomatic
-                    ? "La carte passe par HelloAsso, la plateforme de paiement des associations : aucun frais pour Nyassobi. HelloAsso te proposera un pourboire facultatif, libre à toi de le mettre à 0."
+                    ? "La carte passe par HelloAsso, la plateforme de paiement des associations : aucun frais pour Nyassobi. Tu y saisiras les coordonnées de la personne qui paie (toi, ou ton parent si tu es mineur·e). HelloAsso proposera un pourboire facultatif, libre à toi de le mettre à 0."
                     : "La carte passe par HelloAsso. Le bureau confirmera la réception de ton paiement à la main, sous quelques jours."}
                 </p>
               </>
