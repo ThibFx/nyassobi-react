@@ -6,6 +6,7 @@
 #
 #   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit>              # version de travail (8503)
 #   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit> bac-a-sable  # copie du bac à sable (8505)
+#   bash deployer-pi.sh /tmp/nyassobi-site.tgz <commit> preprod      # copie de la pré-production (8507)
 set -euo pipefail
 
 ARCHIVE="${1:?archive du site attendue}"
@@ -16,10 +17,11 @@ PORT=8503
 GARDER=3
 
 mkdir -p "$DOSSIER/www/releases"
-if [ "$MODE" = "bac-a-sable" ]; then
-  # Le nginx du bac à sable est décrit dans le dépôt du plugin : on n'y touche pas.
+if [ "$MODE" = "bac-a-sable" ] || [ "$MODE" = "preprod" ]; then
+  # Leur nginx est décrit dans le dépôt du plugin : on n'y touche pas.
   PORT=8505
-  [ -f "$DOSSIER/compose.yml" ] || { echo "bac à sable absent : lancer d'abord scripts/bac-a-sable.sh du dépôt du plugin"; exit 1; }
+  [ "$MODE" = "preprod" ] && PORT=8507
+  [ -f "$DOSSIER/compose.yml" ] || { echo "$MODE absent : lancer d'abord le script correspondant du dépôt du plugin"; exit 1; }
 else
   cp /tmp/nyassobi-site-compose.yml "$DOSSIER/compose.yml"
   cp /tmp/nyassobi-site-nginx.conf "$DOSSIER/nginx.conf"

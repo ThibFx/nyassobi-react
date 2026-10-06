@@ -5,6 +5,7 @@
 #   ./scripts/deployer.sh               # tests, puis déploiement
 #   ./scripts/deployer.sh --sans-tests  # déploiement direct
 #   ./scripts/deployer.sh --bac-a-sable # copie branchée sur le bac à sable (port 8505)
+#   ./scripts/deployer.sh --preprod     # copie branchée sur la pré-production (Tailscale, HTTPS)
 #   HOTE=autre-alias ./scripts/deployer.sh
 #
 # L'alias SSH `nv-pi` doit mener à la Pi ; par Tailscale, cela marche depuis
@@ -14,10 +15,12 @@ set -uo pipefail
 HOTE="${HOTE:-nv-pi}"
 SANS_TESTS=0
 BAC_A_SABLE=0
+PREPROD=0
 for argument in "$@"; do
   case "$argument" in
     --sans-tests) SANS_TESTS=1 ;;
     --bac-a-sable) BAC_A_SABLE=1 ;;
+    --preprod) PREPROD=1 ;;
   esac
 done
 
@@ -65,6 +68,8 @@ if [ "$BAC_A_SABLE" -eq 1 ]; then
   # Contenus lus sur le vrai WordPress, envois vers celui du bac à sable
   # (relayé par le nginx du bac à sable, voir le dépôt du plugin).
   VITE_WRITE_GRAPHQL_URL=/bac-a-sable-graphql VITE_BAC_A_SABLE=1 npm run --silent build || echec "compilation"
+elif [ "$PREPROD" -eq 1 ]; then
+  VITE_WRITE_GRAPHQL_URL=/preprod-graphql VITE_ENVIRONNEMENT=preprod npm run --silent build || echec "compilation"
 else
   npm run --silent build || echec "compilation"
 fi
@@ -85,6 +90,11 @@ scp -q "$ARCHIVE" "$HOTE:/tmp/nyassobi-site.tgz" \
 rm -f "$ARCHIVE"
 
 etape "Mise en ligne"
+if [ "$PREPROD" -eq 1 ]; then
+  ssh "$HOTE" "NYASSOBI_SITE_DIR=\$HOME/nyassobi-preprod bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD) preprod" || echec "mise en ligne sur la Pi"
+  printf '\n\033[32mPré-production : https://<nom Tailscale de nv-pi> (voir tailscale serve status sur la Pi)\033[0m\n'
+  exit 0
+fi
 if [ "$BAC_A_SABLE" -eq 1 ]; then
   ssh "$HOTE" "NYASSOBI_SITE_DIR=\$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD) bac-a-sable" || echec "mise en ligne sur la Pi"
   printf '\n\033[32mBac à sable : http://nv-pi:8505\033[0m\n'

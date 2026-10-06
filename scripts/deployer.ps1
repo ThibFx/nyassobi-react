@@ -5,6 +5,7 @@
 #   .\scripts\deployer.ps1 -SansTests      # deploiement direct
 #   .\scripts\deployer.ps1 -Hote nv-pi     # autre alias SSH
 #   .\scripts\deployer.ps1 -BacASable      # copie branchee sur le bac a sable (port 8505)
+#   .\scripts\deployer.ps1 -Preprod        # copie branchee sur la pre-production (Tailscale, HTTPS)
 #
 # Ce fichier reste en ASCII: Windows PowerShell 5.1 lit les scripts sans BOM
 # comme de l'ANSI, et les lettres accentuees y casseraient les chaines.
@@ -12,7 +13,8 @@
 param(
   [string]$Hote = "nv-pi",
   [switch]$SansTests,
-  [switch]$BacASable
+  [switch]$BacASable,
+  [switch]$Preprod
 )
 
 # Pas de mode "Stop": sous PowerShell 5.1, un simple message de git ou de npm
@@ -63,10 +65,15 @@ if ($BacASable) {
   $env:VITE_WRITE_GRAPHQL_URL = "/bac-a-sable-graphql"
   $env:VITE_BAC_A_SABLE = "1"
 }
+if ($Preprod) {
+  $env:VITE_WRITE_GRAPHQL_URL = "/preprod-graphql"
+  $env:VITE_ENVIRONNEMENT = "preprod"
+}
 npm run --silent build
 $codeCompilation = $LASTEXITCODE
 Remove-Item Env:VITE_WRITE_GRAPHQL_URL -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_BAC_A_SABLE -ErrorAction SilentlyContinue
+Remove-Item Env:VITE_ENVIRONNEMENT -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_SANS_HTTPS -ErrorAction SilentlyContinue
 # tsc reecrit ces fichiers suivis par Git a chaque compilation : on les remet en etat.
 git checkout -- tsconfig.app.tsbuildinfo tsconfig.node.tsbuildinfo 2>$null
@@ -87,6 +94,12 @@ Remove-Item $archive
 
 Etape "Mise en ligne"
 $version = (git rev-parse --short HEAD).Trim()
+if ($Preprod) {
+  ssh $Hote "NYASSOBI_SITE_DIR=`$HOME/nyassobi-preprod bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version preprod"
+  if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
+  Write-Host "`nPre-production : https://<nom Tailscale de nv-pi>" -ForegroundColor Green
+  exit 0
+}
 if ($BacASable) {
   ssh $Hote "NYASSOBI_SITE_DIR=`$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version bac-a-sable"
   if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }

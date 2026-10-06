@@ -19,6 +19,11 @@ function App() {
           Bac à sable : les formulaires partent vers un WordPress de test, rien n'est envoyé pour de vrai.
         </p>
       )}
+      {import.meta.env.VITE_ENVIRONNEMENT === "preprod" && (
+        <p className="sandbox-banner sandbox-banner--preprod" role="note">
+          Pré-production : vrai Discord de test, vrais e-mails (adresses autorisées seulement), paiements de test.
+        </p>
+      )}
     </>
   )
 }
