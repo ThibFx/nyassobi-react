@@ -88,9 +88,9 @@ $version = (git rev-parse --short HEAD).Trim()
 if ($BacASable) {
   ssh $Hote "NYASSOBI_SITE_DIR=`$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version bac-a-sable"
   if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
-  Write-Host "`nBac a sable: http://nv-pi:8505 (Tailscale: http://nv-pi:8505)" -ForegroundColor Green
+  Write-Host "`nBac a sable: http://nv-pi:8505" -ForegroundColor Green
   exit 0
 }
 ssh $Hote "bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $version"
 if ($LASTEXITCODE -ne 0) { Echec "mise en ligne sur la Pi" }
-Write-Host "`nEn ligne: http://nv-pi:8503 (Tailscale: http://nv-pi:8503)" -ForegroundColor Green
+Write-Host "`nEn ligne: http://nv-pi:8503" -ForegroundColor Green
