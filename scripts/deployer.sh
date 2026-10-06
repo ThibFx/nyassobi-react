@@ -68,6 +68,9 @@ if [ "$BAC_A_SABLE" -eq 1 ]; then
 else
   npm run --silent build || echec "compilation"
 fi
+# tsc réécrit ce fichier suivi par Git à chaque compilation : on le remet en
+# état pour ne pas laisser de fausse modification derrière nous.
+git checkout -- tsconfig.app.tsbuildinfo tsconfig.node.tsbuildinfo 2>/dev/null || true
 
 etape "Envoi sur la Pi"
 ARCHIVE="$(mktemp -d)/nyassobi-site.tgz"

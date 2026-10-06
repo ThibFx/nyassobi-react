@@ -68,6 +68,8 @@ $codeCompilation = $LASTEXITCODE
 Remove-Item Env:VITE_WRITE_GRAPHQL_URL -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_BAC_A_SABLE -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_SANS_HTTPS -ErrorAction SilentlyContinue
+# tsc reecrit ces fichiers suivis par Git a chaque compilation : on les remet en etat.
+git checkout -- tsconfig.app.tsbuildinfo tsconfig.node.tsbuildinfo 2>$null
 if ($codeCompilation -ne 0) { Echec "compilation" }
 
 Etape "Envoi sur la Pi"
