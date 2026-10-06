@@ -34,7 +34,7 @@ formulaires de contact et d'adhésion écrivent.
 
 Le script vérifie que tout est validé et poussé sur GitHub, lance les tests, compile, puis
 envoie le site sur la Pi (alias SSH `nv-pi`), où nginx le sert sur le port 8503 :
-http://nv-pi:8503, ou http://nv-pi:8503 par Tailscale. Les trois dernières
+http://nv-pi:8503 (par Tailscale). Les trois dernières
 versions sont gardées dans `~/nyassobi-site/www/releases` ; la bascule est instantanée.
 
 `--bac-a-sable` (`-BacASable` sous Windows) déploie plutôt une copie sur le port 8505, dont les

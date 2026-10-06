@@ -1,5 +1,5 @@
 # Site Nyassobi sur la Raspberry Pi, à côté de l'observatoire (8501) :
-# http://nv-pi:8503, ou http://nv-pi:8503 par Tailscale.
+# http://nv-pi:8503 (par Tailscale).
 services:
   site:
     image: nginx:1.27-alpine

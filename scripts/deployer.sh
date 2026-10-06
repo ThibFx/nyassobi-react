@@ -85,8 +85,8 @@ rm -f "$ARCHIVE"
 etape "Mise en ligne"
 if [ "$BAC_A_SABLE" -eq 1 ]; then
   ssh "$HOTE" "NYASSOBI_SITE_DIR=\$HOME/nyassobi-bac-a-sable bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD) bac-a-sable" || echec "mise en ligne sur la Pi"
-  printf '\n\033[32mBac à sable : http://nv-pi:8505 (Tailscale : http://nv-pi:8505)\033[0m\n'
+  printf '\n\033[32mBac à sable : http://nv-pi:8505\033[0m\n'
   exit 0
 fi
 ssh "$HOTE" "bash /tmp/nyassobi-site-deployer.sh /tmp/nyassobi-site.tgz $(git rev-parse --short HEAD)" || echec "mise en ligne sur la Pi"
-printf '\n\033[32mEn ligne : http://nv-pi:8503 (Tailscale : http://nv-pi:8503)\033[0m\n'
+printf '\n\033[32mEn ligne : http://nv-pi:8503\033[0m\n'
