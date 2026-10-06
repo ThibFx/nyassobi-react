@@ -1,1 +1,1 @@
-{"root":["./src/vite-env.d.ts","./src/api/nyassobimembership.ts","./src/api/nyassobimutations.ts","./src/api/wordpressquery.ts","./src/hooks/createwpmenu.ts","./src/hooks/useateliers.ts","./src/hooks/usenyassobisettings.ts","./src/hooks/usewordpresscontent.ts"],"version":"5.6.3"}
+{"root":["./src/vite-env.d.ts","./src/api/nyassobimutations.ts","./src/api/wordpressquery.ts","./src/hooks/createwpmenu.ts","./src/hooks/useateliers.ts","./src/hooks/usenyassobisettings.ts","./src/hooks/usewordpresscontent.ts"],"version":"5.6.3"}
