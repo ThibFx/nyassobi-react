@@ -127,7 +127,7 @@ function AdhesionForm({ fees }) {
     return (
       <div className={styles.success} role="status">
         <p className={styles.successTitle}>Demande envoyée !</p>
-        <p>{result.message || "Le conseil d'administration va étudier ta demande. Tu recevras sa réponse par e-mail, puis le lien pour régler ta cotisation."}</p>
+        <p>{result.message || "Le conseil d'administration va étudier ta demande. Tu recevras sa réponse par e-mail, puis le lien pour régler ta cotisation. Un e-mail de confirmation vient de partir : s'il n'est pas dans ta boîte de réception, regarde dans tes spams et ajoute notre adresse à tes contacts, pour ne pas rater la suite."}</p>
       </div>
     );
   }
