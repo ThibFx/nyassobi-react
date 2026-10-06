@@ -29,6 +29,7 @@ const PresentationPage = lazy(() => import("./pages/PresentationPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const AteliersPage = lazy(() => import("./pages/AteliersPage"));
 const AtelierDetailPage = lazy(() => import("./pages/AtelierDetailPage"));
+const CotisationPage = lazy(() => import("./pages/CotisationPage"));
 
 const router = createBrowserRouter([
   {
@@ -77,6 +78,10 @@ const router = createBrowserRouter([
         element: <AtelierDetailPage/>
       },
       {
+        path: "cotisation/:jeton",
+        element: <CotisationPage/>
+      },
+      {
         path: "*",
         element: <WordPressPage/>
       }
@@ -88,7 +93,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* <App /> */}
     <ApolloProvider client={wordPressClient}>
-      <HttpsRedirect>
+      {/* Une copie de test servie en HTTP (sur un réseau local) ne doit pas
+          être renvoyée vers un HTTPS qui n'existe pas. */}
+      <HttpsRedirect disabled={import.meta.env.VITE_SANS_HTTPS === "1"}>
         <AnimatePresence>
           <Suspense fallback={<div className="app-loader"></div>}>
             <RouterProvider router={router} />

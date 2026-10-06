@@ -1,0 +1,70 @@
+.season {
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.amount {
+  text-align: center;
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem;
+  color: #ed5e24;
+}
+
+.reduced {
+  display: inline-block;
+  margin-left: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(39, 199, 181, 0.15);
+  color: #1a8f82;
+  font-size: 0.95rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+// Bouton PayPal : couleurs de PayPal, même forme que les boutons du site.
+.paypal {
+  background-color: #ffc439;
+  background-image: none;
+  color: #111;
+  box-shadow: 0 12px 20px rgba(255, 196, 57, 0.35);
+}
+
+.small {
+  max-width: 620px;
+  margin: 1.5rem auto 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.notice {
+  max-width: 620px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: rgba(39, 199, 181, 0.12);
+  text-align: center;
+}
+
+.noticeError {
+  background: rgba(194, 65, 12, 0.1);
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.paid {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(39, 199, 181, 0.12);
+  text-align: center;
+}
+
+.paidTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a8f82;
+}

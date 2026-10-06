@@ -4,6 +4,7 @@ import styles from "./ContactForm.module.scss";
 import {
   SEND_NYASSOBI_CONTACT_MESSAGE,
 } from "../api/nyassobiMutations";
+import { writeContext } from "../api/nyassobiMembership";
 
 const mergeClassNames = (...classNames) =>
   classNames.filter((value) => typeof value === "string" && value.trim()).join(" ");
@@ -27,7 +28,7 @@ function ContactForm({
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: null, message: "" });
 
-  const [sendContactMessage, { loading }] = useMutation(SEND_NYASSOBI_CONTACT_MESSAGE);
+  const [sendContactMessage, { loading }] = useMutation(SEND_NYASSOBI_CONTACT_MESSAGE, { context: writeContext });
 
   const handleChange = useCallback((event) => {
     const { name, value } = event.target;

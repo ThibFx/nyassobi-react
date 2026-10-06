@@ -1,0 +1,201 @@
+// Même apparence que le formulaire de contact (ContactForm.module.scss),
+// pour que la demande d'adhésion ait l'air d'avoir toujours fait partie du site.
+
+.adhesionForm {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 760px;
+  margin: 1.5rem auto;
+  text-align: left;
+}
+
+.row {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.formField {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.optional {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  border-color: #ed5e24;
+  box-shadow: 0 0 0 3px rgba(237, 94, 36, 0.35);
+  outline: none;
+}
+
+.input[aria-invalid="true"] {
+  border-color: #c2410c;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+// Plus foncé que l'orange clair du formulaire de contact : lisible sur fond blanc.
+.error {
+  margin: 0;
+  color: #c2410c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.parental {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: rgba(39, 199, 181, 0.12);
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: #1a8f82;
+    font-weight: 600;
+  }
+}
+
+.fileInput {
+  font: inherit;
+}
+
+.fileChosen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fff;
+  border: 2px solid #27c7b5;
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  color: #c2410c;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0 0.5rem;
+}
+
+.rates {
+  display: grid;
+  gap: 0.75rem;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rate,
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  min-height: 44px;
+
+  input {
+    margin-top: 0.25rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: #ed5e24;
+    flex-shrink: 0;
+  }
+
+  a {
+    color: #ed5e24;
+    font-weight: 600;
+  }
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+}
+
+.submitButton {
+  justify-self: start;
+  background: linear-gradient(135deg, #ed5e24, #f38b4a);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.9rem 2.5rem;
+  min-height: 44px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(237, 94, 36, 0.35);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.statusMessage {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.statusError {
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.success {
+  max-width: 760px;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(39, 199, 181, 0.12);
+  text-align: center;
+
+  p {
+    margin: 0.4rem 0;
+  }
+}
+
+.successTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a8f82;
+}

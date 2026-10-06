@@ -5,3 +5,18 @@ p, div, span, li {
 a {
     color: #ED5E24;
 }
+// Bandeau de la copie de test (bac à sable), absent du vrai site.
+.sandbox-banner {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1000;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: #1a8f82;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
