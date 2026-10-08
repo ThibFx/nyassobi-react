@@ -30,6 +30,7 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const AteliersPage = lazy(() => import("./pages/AteliersPage"));
 const AtelierDetailPage = lazy(() => import("./pages/AtelierDetailPage"));
 const CotisationPage = lazy(() => import("./pages/CotisationPage"));
+const ConventionsPage = lazy(() => import("./pages/ConventionsPage"));
 
 const router = createBrowserRouter([
   {
@@ -80,6 +81,10 @@ const router = createBrowserRouter([
       {
         path: "cotisation/:jeton",
         element: <CotisationPage/>
+      },
+      {
+        path: "conventions",
+        element: <ConventionsPage/>
       },
       {
         path: "*",

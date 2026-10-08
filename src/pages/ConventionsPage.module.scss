@@ -1,0 +1,124 @@
+// Même famille visuelle que la page de cotisation et le formulaire d'adhésion.
+
+.notice {
+  max-width: 760px;
+  margin: 1rem auto;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: rgba(39, 199, 181, 0.12);
+
+  p {
+    margin: 0 0 0.5rem;
+  }
+}
+
+.noticeError {
+  background: rgba(194, 65, 12, 0.12);
+}
+
+.list {
+  list-style: none;
+  max-width: 760px;
+  margin: 1.5rem auto;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.name {
+  display: block;
+  font-weight: 700;
+}
+
+.meta {
+  display: block;
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(237, 94, 36, 0.12);
+  color: #c2410c;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badgeClosed {
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  opacity: 0.8;
+}
+
+.login {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  text-align: center;
+  margin: 1.5rem auto;
+  max-width: 560px;
+}
+
+// Couleur de Discord, même forme que les boutons du site.
+.discord {
+  background-color: #5865f2;
+  background-image: none;
+  color: #fff;
+}
+
+.who {
+  margin: 0;
+}
+
+.convention {
+  margin: 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  min-width: 0;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.conventionPicked {
+  border-color: #ed5e24;
+  box-shadow: 0 0 0 1px #ed5e24;
+}
+
+.legend {
+  padding: 0;
+  float: left;
+  width: 100%;
+}
+
+.details {
+  clear: both;
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+}

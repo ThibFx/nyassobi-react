@@ -1,0 +1,377 @@
+import { useEffect, useId, useState } from "react";
+import { useMutation, useQuery } from "@apollo/client/react";
+
+import styles from "./ConventionsPage.module.scss";
+import pageStyles from "./WordPressPage.module.scss";
+import formStyles from "../components/AdhesionForm.module.scss";
+import buttonStyles from "../components/NyassoButtonTwo.module.scss";
+import TitleNyasso from "../TitleNyasso";
+import Footer from "../Footer";
+import Loader from "../components/Loader";
+import { writeContext } from "../api/nyassobiMembership";
+import { GET_CONVENTIONS, GET_CONVENTION_SESSION, SUBMIT_CONVENTION_RESPONSE } from "../api/nyassobiConventions";
+
+const SESSION_KEY = "nyassobiConventionSession";
+
+const ROLES = {
+  staff: "Staff du stand",
+  animation: "Animation",
+  "les-deux": "Staff et animation",
+};
+const NEEDS = {
+  "les-deux": "Staff et animation",
+  staff: "Staff",
+  animation: "Animation",
+};
+const TRAVEL = {
+  "1h": "Moins d'1 h",
+  "2h": "Moins de 2 h",
+  "4h": "Moins de 4 h",
+  plus: "Plus de 4 h",
+};
+const LOGIN_ERRORS = {
+  annule: "Connexion annulée sur Discord. Tu peux réessayer quand tu veux.",
+  discord: "Discord n'a pas pu confirmer ta connexion. Réessaie dans quelques minutes.",
+  config: "La connexion avec Discord n'est pas encore disponible.",
+};
+
+/** Le stockage peut être refusé (navigation privée) : la page marche sans. */
+function storage(action, value) {
+  try {
+    if (action === "get") return sessionStorage.getItem(SESSION_KEY) ?? "";
+    if (action === "set") sessionStorage.setItem(SESSION_KEY, value);
+    if (action === "clear") sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Rien à faire : il faudra se reconnecter au prochain chargement.
+  }
+  return "";
+}
+
+/**
+ * Au retour de Discord, la clé de session arrive après le # de l'adresse :
+ * le navigateur ne l'envoie à aucun serveur. On la range, puis on la retire
+ * de l'adresse pour qu'elle ne reste ni dans l'historique ni dans un lien copié.
+ */
+function readReturn() {
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const session = hash.get("session") ?? "";
+  const error = hash.get("erreur") ?? "";
+  if (session || error) {
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+  if (session) storage("set", session);
+  return { session: session || storage("get"), error };
+}
+
+function rolesFor(needs) {
+  return needs === "les-deux" ? Object.keys(ROLES) : [needs];
+}
+
+/**
+ * Page où les adhérents proposent leur aide pour les conventions : staff du
+ * stand, animation, ou les deux. La connexion avec Discord prouve qu'ils ont
+ * le rôle Adhérent ; le CA reçoit un récapitulatif sur Discord.
+ */
+function ConventionsPage() {
+  const ids = useId();
+  const [{ session, error: loginError }, setLogin] = useState(readReturn);
+  const [picks, setPicks] = useState({});
+  const [animation, setAnimation] = useState("");
+  const [comment, setComment] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const conventionsQuery = useQuery(GET_CONVENTIONS, { context: writeContext, fetchPolicy: "network-only" });
+  const sessionQuery = useQuery(GET_CONVENTION_SESSION, {
+    variables: { session },
+    context: writeContext,
+    fetchPolicy: "network-only",
+    skip: !session,
+  });
+  const [submit, { loading: saving }] = useMutation(SUBMIT_CONVENTION_RESPONSE, { context: writeContext });
+
+  const conventions = conventionsQuery.data?.nyassobiConventions ?? [];
+  const loginUrl = conventionsQuery.data?.nyassobiConventionsLoginUrl ?? null;
+  const me = sessionQuery.data?.nyassobiConventionSession ?? null;
+  const expired = Boolean(session) && !sessionQuery.loading && sessionQuery.data && !me;
+
+  // Les choix déjà enregistrés sont repris une seule fois, à l'arrivée.
+  useEffect(() => {
+    if (!me || loaded) return;
+    const initial = {};
+    for (const choice of me.choices ?? []) {
+      initial[choice.conventionId] = { role: choice.role, travel: choice.travel, transport: choice.transport ?? "" };
+    }
+    setPicks(initial);
+    setAnimation(me.animation ?? "");
+    setComment(me.comment ?? "");
+    setLoaded(true);
+  }, [me, loaded]);
+
+  const logout = () => {
+    storage("clear");
+    setLogin({ session: "", error: "" });
+    setPicks({});
+    setLoaded(false);
+    setResult(null);
+  };
+
+  const toggle = (convention) => {
+    setResult(null);
+    setPicks((current) => {
+      const next = { ...current };
+      if (next[convention.id]) {
+        delete next[convention.id];
+      } else {
+        const roles = rolesFor(convention.needs);
+        next[convention.id] = { role: roles.length === 1 ? roles[0] : "", travel: "", transport: "" };
+      }
+      return next;
+    });
+  };
+
+  const change = (id, key, value) => {
+    setResult(null);
+    setPicks((current) => ({ ...current, [id]: { ...current[id], [key]: value } }));
+  };
+
+  const animates = Object.values(picks).some((pick) => pick.role && pick.role !== "staff");
+  const hadAnswer = (me?.choices ?? []).length > 0;
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const missing = conventions.find((c) => picks[c.id] && (!picks[c.id].role || !picks[c.id].travel));
+    if (missing) {
+      setResult({ success: false, message: `Indique ton rôle et ton temps de trajet pour ${missing.name}.` });
+      return;
+    }
+    try {
+      const { data } = await submit({
+        variables: {
+          input: {
+            session,
+            choices: Object.entries(picks).map(([conventionId, pick]) => ({
+              conventionId: Number(conventionId),
+              role: pick.role,
+              travel: pick.travel,
+              transport: pick.transport.trim(),
+            })),
+            animation: animates ? animation.trim() : "",
+            comment: comment.trim(),
+          },
+        },
+      });
+      const response = data?.submitNyassobiConventionResponse;
+      setResult({ success: Boolean(response?.success), message: response?.message ?? "" });
+      if (response?.success) sessionQuery.refetch();
+    } catch (error) {
+      setResult({ success: false, message: error instanceof Error ? error.message : "La réponse n'a pas pu être envoyée." });
+    }
+  };
+
+  return (
+    <>
+      <div className={pageStyles.pageViewport}>
+        <article className={pageStyles.simplePage}>
+          <TitleNyasso title="Conventions" />
+          <div className={pageStyles.simpleContent}>
+            <p>
+              Nyassobi tient un stand dans plusieurs conventions. On cherche des adhérents pour le staff (installer et tenir le stand, présenter
+              l'association et le VTubing aux visiteurs) et pour proposer des animations. Ça n'engage à rien : le CA choisit l'équipe et te
+              recontacte sur Discord. Les frais de déplacement sont défrayés.
+            </p>
+
+            {conventionsQuery.loading && <Loader label="Chargement des conventions..." />}
+            {conventionsQuery.error && <p className={styles.notice}>La liste n'a pas pu être chargée. Vérifie ta connexion et recharge la page.</p>}
+            {LOGIN_ERRORS[loginError] && <p className={`${styles.notice} ${styles.noticeError}`} role="alert">{LOGIN_ERRORS[loginError]}</p>}
+            {expired && <p className={styles.notice} role="status">Ta connexion a expiré : reconnecte-toi avec Discord pour retrouver ta réponse.</p>}
+
+            {!conventionsQuery.loading && !conventionsQuery.error && conventions.length === 0 && (
+              <p className={styles.notice}>Aucune convention à venir pour le moment. Les prochaines seront annoncées sur Discord.</p>
+            )}
+
+            {conventions.length > 0 && (!me || !me.member) && (
+              <>
+                <ul className={styles.list}>
+                  {conventions.map((c) => (
+                    <li key={c.id} className={styles.item}>
+                      <span className={styles.name}>{c.name}</span>
+                      <span className={styles.meta}>
+                        {c.dates}
+                        {c.city && ` · ${c.city}`}
+                      </span>
+                      <span className={styles.badges}>
+                        <span className={styles.badge}>{NEEDS[c.needs] ?? c.needs}</span>
+                        {!c.open && <span className={`${styles.badge} ${styles.badgeClosed}`}>Équipe complète</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {me && !me.member ? (
+                  <div className={styles.notice} role="status">
+                    <p>
+                      Connecté·e en tant que <strong>{me.name}</strong>, mais ce formulaire est réservé aux adhérents : on ne trouve pas ton rôle
+                      « Adhérent » sur notre serveur Discord.
+                    </p>
+                    <button type="button" className={formStyles.linkButton} onClick={logout}>
+                      Changer de compte Discord
+                    </button>
+                  </div>
+                ) : loginUrl ? (
+                  <div className={styles.login}>
+                    <div className={buttonStyles.nyassoBtn}>
+                      <a href={loginUrl} className={`${buttonStyles.button} ${styles.discord}`}>
+                        Me connecter avec Discord
+                      </a>
+                    </div>
+                    <p className={formStyles.hint}>
+                      Réservé aux adhérents : la connexion vérifie ton rôle « Adhérent » sur notre serveur Discord. On ne récupère que ton pseudo.
+                    </p>
+                  </div>
+                ) : (
+                  !session && <p className={styles.notice}>Les inscriptions en ligne ouvrent bientôt. En attendant, contacte le CA sur Discord.</p>
+                )}
+              </>
+            )}
+
+            {me?.member && conventions.length > 0 && (
+              <form className={formStyles.adhesionForm} onSubmit={handleSubmit} noValidate aria-label="Proposer mon aide pour les conventions">
+                <p className={styles.who}>
+                  Connecté·e en tant que <strong>{me.name}</strong>.{" "}
+                  <button type="button" className={formStyles.linkButton} onClick={logout}>
+                    Se déconnecter
+                  </button>
+                </p>
+                <p className={formStyles.hint}>
+                  Coche les conventions où tu peux venir. On ne te demande jamais ta ville : seulement ton temps de trajet.
+                </p>
+
+                {conventions.map((c) => {
+                  const pick = picks[c.id];
+                  const roles = rolesFor(c.needs);
+                  const closed = !c.open && !pick;
+                  const fid = `${ids}-${c.id}`;
+                  return (
+                    <fieldset key={c.id} className={`${styles.convention} ${pick ? styles.conventionPicked : ""}`} disabled={closed}>
+                      <legend className={styles.legend}>
+                        <label className={formStyles.checkbox}>
+                          <input type="checkbox" checked={Boolean(pick)} onChange={() => toggle(c)} disabled={closed} />
+                          <span>
+                            <span className={styles.name}>{c.name}</span>
+                            <span className={styles.meta}>
+                              {c.dates}
+                              {c.city && ` · ${c.city}`}
+                              {closed && " · équipe complète"}
+                            </span>
+                          </span>
+                        </label>
+                      </legend>
+
+                      {pick && (
+                        <div className={styles.details}>
+                          {roles.length > 1 ? (
+                            <div className={formStyles.formField}>
+                              <span className={formStyles.label}>Je viens pour</span>
+                              <div className={styles.options}>
+                                {roles.map((role) => (
+                                  <label key={role} className={formStyles.rate}>
+                                    <input type="radio" name={`${fid}-role`} value={role} checked={pick.role === role} onChange={() => change(c.id, "role", role)} />
+                                    <span>{ROLES[role]}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className={formStyles.hint}>Pour cette convention, on cherche : {NEEDS[c.needs].toLowerCase()}.</p>
+                          )}
+                          <div className={formStyles.row}>
+                            <div className={formStyles.formField}>
+                              <label htmlFor={`${fid}-travel`} className={formStyles.label}>
+                                Temps de trajet
+                              </label>
+                              <select id={`${fid}-travel`} className={formStyles.input} value={pick.travel} onChange={(e) => change(c.id, "travel", e.target.value)}>
+                                <option value="">Choisir…</option>
+                                {Object.entries(TRAVEL).map(([value, label]) => (
+                                  <option key={value} value={value}>
+                                    {label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className={formStyles.formField}>
+                              <label htmlFor={`${fid}-transport`} className={formStyles.label}>
+                                Moyen de transport <span className={formStyles.optional}>(facultatif)</span>
+                              </label>
+                              <input
+                                id={`${fid}-transport`}
+                                type="text"
+                                maxLength={80}
+                                className={formStyles.input}
+                                placeholder="Train, voiture, covoiturage…"
+                                value={pick.transport}
+                                onChange={(e) => change(c.id, "transport", e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </fieldset>
+                  );
+                })}
+
+                {animates && (
+                  <div className={formStyles.formField}>
+                    <label htmlFor={`${ids}-animation`} className={formStyles.label}>
+                      L'animation que tu proposes
+                    </label>
+                    <textarea
+                      id={`${ids}-animation`}
+                      rows={4}
+                      maxLength={1000}
+                      className={formStyles.input}
+                      placeholder="Atelier dessin, karaoké, quiz VTubing, présentation…"
+                      value={animation}
+                      onChange={(e) => setAnimation(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <div className={formStyles.formField}>
+                  <label htmlFor={`${ids}-comment`} className={formStyles.label}>
+                    Questions, précisions ou commentaires <span className={formStyles.optional}>(facultatif)</span>
+                  </label>
+                  <textarea
+                    id={`${ids}-comment`}
+                    rows={3}
+                    maxLength={1000}
+                    className={formStyles.input}
+                    placeholder="Dispo seulement le samedi, déjà staffé chez…"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                </div>
+
+                {result && (
+                  <p className={result.success ? formStyles.statusMessage : formStyles.error} role={result.success ? "status" : "alert"}>
+                    {result.message}
+                  </p>
+                )}
+
+                <button type="submit" className={formStyles.submitButton} disabled={saving} aria-busy={saving || undefined}>
+                  {saving ? "Envoi…" : hadAnswer ? "Mettre à jour ma réponse" : "Envoyer"}
+                </button>
+                {hadAnswer && <p className={formStyles.hint}>Pour retirer ta réponse, décoche toutes les conventions et envoie.</p>}
+              </form>
+            )}
+
+            {session && sessionQuery.loading && <Loader label="Connexion..." />}
+          </div>
+        </article>
+      </div>
+      <Footer />
+    </>
+  );
+}
+
+export default ConventionsPage;
