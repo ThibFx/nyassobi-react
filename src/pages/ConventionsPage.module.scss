@@ -122,3 +122,66 @@
   flex-wrap: wrap;
   gap: 0.25rem 1.5rem;
 }
+
+.info {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+// Le texte du CA garde ses retours à la ligne.
+.description {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.link {
+  justify-self: start;
+  font-weight: 600;
+  color: #c2410c;
+}
+
+.images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+  }
+}
+
+.news {
+  border-left: 3px solid #27c7b5;
+  padding-left: 0.85rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+}
+
+.newsTitle {
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+
+.newsDate {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.newsImage {
+  margin-top: 0.4rem;
+  max-width: min(100%, 320px);
+  border-radius: 8px;
+  display: block;
+}

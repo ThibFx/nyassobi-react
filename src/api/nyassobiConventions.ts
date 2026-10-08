@@ -14,6 +14,14 @@ export const GET_CONVENTIONS = gql`
       dates
       needs
       open
+      description
+      link
+      images
+      news {
+        date
+        text
+        image
+      }
     }
     nyassobiConventionsLoginUrl
   }

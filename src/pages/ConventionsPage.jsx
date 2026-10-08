@@ -63,6 +63,49 @@ function readReturn() {
   return { session: session || storage("get"), error };
 }
 
+/** Ce que le CA a ajouté : description, lien, affiche ou photos, annonces. */
+function ConventionInfo({ convention }) {
+  const { name, description, link, images = [], news = [] } = convention;
+  if (!description && !link && images.length === 0 && news.length === 0) return null;
+  return (
+    <div className={styles.info}>
+      {description && <p className={styles.description}>{description}</p>}
+      {link && (
+        <a href={link} target="_blank" rel="noopener noreferrer" className={styles.link}>
+          Site de la convention
+        </a>
+      )}
+      {images.length > 0 && (
+        <div className={styles.images}>
+          {images.map((src, index) => (
+            <a key={src} href={src} target="_blank" rel="noopener noreferrer">
+              <img src={src} alt={`${name}, image ${index + 1}`} loading="lazy" />
+            </a>
+          ))}
+        </div>
+      )}
+      {news.length > 0 && (
+        <div className={styles.news}>
+          <p className={styles.newsTitle}>Annonces</p>
+          <ul>
+            {news.map((item, index) => (
+              <li key={`${item.date}-${index}`}>
+                <span className={styles.newsDate}>{item.date}</span>
+                {item.text && <p className={styles.description}>{item.text}</p>}
+                {item.image && (
+                  <a href={item.image} target="_blank" rel="noopener noreferrer">
+                    <img src={item.image} alt={`${name}, image de l'annonce`} loading="lazy" className={styles.newsImage} />
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function rolesFor(needs) {
   return needs === "les-deux" ? Object.keys(ROLES) : [needs];
 }
@@ -204,6 +247,7 @@ function ConventionsPage() {
                         <span className={styles.badge}>{NEEDS[c.needs] ?? c.needs}</span>
                         {!c.open && <span className={`${styles.badge} ${styles.badgeClosed}`}>Équipe complète</span>}
                       </span>
+                      <ConventionInfo convention={c} />
                     </li>
                   ))}
                 </ul>
@@ -267,6 +311,10 @@ function ConventionsPage() {
                           </span>
                         </label>
                       </legend>
+
+                      <div className={styles.details}>
+                        <ConventionInfo convention={c} />
+                      </div>
 
                       {pick && (
                         <div className={styles.details}>
