@@ -13,13 +13,13 @@ import { GET_CONVENTIONS, GET_CONVENTION_SESSION, SUBMIT_CONVENTION_RESPONSE } f
 
 const SESSION_KEY = "nyassobiConventionSession";
 
+// Une personne vient soit en staff, soit pour une animation, jamais les deux.
 const ROLES = {
   staff: "Staff du stand",
   animation: "Animation",
-  "les-deux": "Staff et animation",
 };
 const NEEDS = {
-  "les-deux": "Staff et animation",
+  "les-deux": "Staff ou animation",
   staff: "Staff",
   animation: "Animation",
 };
