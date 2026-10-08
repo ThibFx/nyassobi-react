@@ -28,7 +28,7 @@ function NyassoButtonTwo() {
   }
 
   if (data?.nyassobiMembershipOpen) {
-    return <AdhesionForm fees={data.nyassobiMembershipFees ?? DEFAULT_FEES} />;
+    return <AdhesionForm fees={data.nyassobiMembershipFees ?? DEFAULT_FEES} discordJoin={Boolean(data.nyassobiDiscordJoin)} />;
   }
 
   return (

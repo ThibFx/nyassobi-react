@@ -47,7 +47,7 @@ function Field({ id, label, optional = false, hint, error, children }) {
  * au vote du conseil d'administration sur Discord : le CA n'y voit que le
  * pseudo, l'identité reste réservée au bureau.
  */
-function AdhesionForm({ fees }) {
+function AdhesionForm({ fees, discordJoin = false }) {
   const { settings } = useNyassobiSettings();
   const ids = useId();
   const fileInput = useRef(null);
@@ -156,15 +156,19 @@ function AdhesionForm({ fees }) {
         </Field>
       </div>
 
-      <Field
-        id={id("discordUsername")}
-        label="Pseudo Discord"
-        optional
-        hint="Pour recevoir le rôle « Adhérent » sur notre serveur dès ta cotisation réglée. Le CA ne le voit pas."
-        error={errors.discordUsername}
-      >
-        <input type="text" autoComplete="off" spellCheck={false} placeholder="ton_pseudo" {...field("discordUsername")} />
-      </Field>
+      {/* Avec le lien « Rejoindre le Discord » envoyé après le paiement, c'est
+          Discord qui dit qui rejoint : inutile de demander le pseudo. */}
+      {!discordJoin && (
+        <Field
+          id={id("discordUsername")}
+          label="Pseudo Discord"
+          optional
+          hint="Pour recevoir le rôle « Adhérent » sur notre serveur dès ta cotisation réglée. Le CA ne le voit pas."
+          error={errors.discordUsername}
+        >
+          <input type="text" autoComplete="off" spellCheck={false} placeholder="ton_pseudo" {...field("discordUsername")} />
+        </Field>
+      )}
 
       {minor && (
         <div className={styles.parental}>

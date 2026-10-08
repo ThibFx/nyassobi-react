@@ -18,6 +18,13 @@ const RETOURS = {
   "en-cours": { error: false, text: "Ton paiement est en cours de validation par la banque. Cette page se met à jour toute seule." },
 };
 
+/** Messages au retour de Discord, une fois la cotisation payée. */
+const RETOURS_DISCORD = {
+  "discord-annule": { error: false, text: "Tu n'as pas validé sur Discord. Tu peux recommencer quand tu veux avec le bouton ci-dessous." },
+  "discord-erreur": { error: true, text: "Discord n'a pas pu t'ajouter au serveur. Réessaie dans quelques minutes, ou réponds à l'e-mail de bienvenue pour que le bureau te donne ton rôle." },
+  "discord-autre": { error: true, text: "Ce lien a déjà servi à un autre compte Discord. Connecte-toi avec ce compte-là, ou réponds à l'e-mail de bienvenue." },
+};
+
 /**
  * Page de paiement personnelle, ouverte depuis l'e-mail d'acceptation. Elle
  * ne montre aucune donnée personnelle : seulement le montant et les moyens de
@@ -71,6 +78,36 @@ function CotisationPage() {
               <div className={styles.paid} role="status">
                 <p className={styles.paidTitle}>Cotisation reçue</p>
                 <p>Tu fais maintenant partie de Nyassobi. Un e-mail de bienvenue vient de partir, avec la suite pour nous rejoindre sur Discord.</p>
+              </div>
+            )}
+
+            {cotisation?.status === "payee" && cotisation.discordJoinUrl && (
+              <div className={styles.discord}>
+                {cotisation.discordJoined || retour === "discord-ok" ? (
+                  <>
+                    <p role="status">C'est fait : tu es sur notre serveur Discord, avec ton rôle « Adhérent ».</p>
+                    <div className={buttonStyles.nyassoBtn}>
+                      <a href={cotisation.discordServerUrl} className={buttonStyles.button}>
+                        Ouvrir Discord
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {RETOURS_DISCORD[retour] && (
+                      <p className={`${styles.notice} ${RETOURS_DISCORD[retour].error ? styles.noticeError : ""}`} role={RETOURS_DISCORD[retour].error ? "alert" : "status"}>
+                        {RETOURS_DISCORD[retour].text}
+                      </p>
+                    )}
+                    <p>Dernière étape : rejoins notre serveur Discord, ton rôle « Adhérent » t'y sera donné tout de suite.</p>
+                    <div className={buttonStyles.nyassoBtn}>
+                      <a href={cotisation.discordJoinUrl} className={buttonStyles.button}>
+                        Rejoindre le Discord
+                      </a>
+                    </div>
+                    <p className={styles.small}>Discord te demandera de te connecter, puis d'autoriser Nyassobi à t'ajouter au serveur.</p>
+                  </>
+                )}
               </div>
             )}
 

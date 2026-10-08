@@ -20,6 +20,7 @@ export const writeContext = { uri: writeGraphQLEndpoint };
 export const GET_MEMBERSHIP_STATE = gql`
   query GetMembershipState {
     nyassobiMembershipOpen
+    nyassobiDiscordJoin
     nyassobiMembershipFees {
       normal
       reduced
@@ -46,6 +47,9 @@ export const GET_COTISATION = gql`
       cardUrl
       cardAutomatic
       paypalUrl
+      discordJoinUrl
+      discordJoined
+      discordServerUrl
     }
   }
 `;
