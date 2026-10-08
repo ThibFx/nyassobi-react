@@ -14,6 +14,10 @@ export const GET_CONVENTIONS = gql`
       dates
       needs
       open
+      days {
+        date
+        label
+      }
       description
       link
       images
@@ -37,6 +41,8 @@ export const GET_CONVENTION_SESSION = gql`
         role
         travel
         transport
+        days
+        slots
       }
       animation
       comment

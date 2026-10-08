@@ -23,6 +23,13 @@ const NEEDS = {
   staff: "Staff",
   animation: "Animation",
 };
+// Pour les animateurs : une animation dure environ une heure.
+const SLOTS = {
+  matin: "Matin (10 h – 12 h)",
+  midi: "Midi (12 h – 14 h)",
+  aprem: "Après-midi (14 h – 16 h)",
+  fin: "Fin de journée (16 h – 19 h)",
+};
 const TRAVEL = {
   "1h": "Moins d'1 h",
   "2h": "Moins de 2 h",
@@ -143,7 +150,13 @@ function ConventionsPage() {
     if (!me || loaded) return;
     const initial = {};
     for (const choice of me.choices ?? []) {
-      initial[choice.conventionId] = { role: choice.role, travel: choice.travel, transport: choice.transport ?? "" };
+      initial[choice.conventionId] = {
+        role: choice.role,
+        travel: choice.travel,
+        transport: choice.transport ?? "",
+        days: choice.days ?? [],
+        slots: choice.slots ?? [],
+      };
     }
     setPicks(initial);
     setAnimation(me.animation ?? "");
@@ -167,7 +180,15 @@ function ConventionsPage() {
         delete next[convention.id];
       } else {
         const roles = rolesFor(convention.needs);
-        next[convention.id] = { role: roles.length === 1 ? roles[0] : "", travel: "", transport: "" };
+        const days = (convention.days ?? []).map((day) => day.date);
+        next[convention.id] = {
+          role: roles.length === 1 ? roles[0] : "",
+          travel: "",
+          transport: "",
+          // Une convention d'un seul jour n'a pas de jour à choisir.
+          days: days.length === 1 ? days : [],
+          slots: [],
+        };
       }
       return next;
     });
@@ -176,6 +197,16 @@ function ConventionsPage() {
   const change = (id, key, value) => {
     setResult(null);
     setPicks((current) => ({ ...current, [id]: { ...current[id], [key]: value } }));
+  };
+
+  /** Coche ou décoche une valeur d'une liste (jours, horaires). */
+  const flip = (id, key, value) => {
+    setResult(null);
+    setPicks((current) => {
+      const list = current[id][key] ?? [];
+      const nextList = list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+      return { ...current, [id]: { ...current[id], [key]: nextList } };
+    });
   };
 
   const animates = Object.values(picks).some((pick) => pick.role && pick.role !== "staff");
@@ -188,6 +219,16 @@ function ConventionsPage() {
       setResult({ success: false, message: `Indique ton rôle et ton temps de trajet pour ${missing.name}.` });
       return;
     }
+    const noDay = conventions.find((c) => picks[c.id] && (picks[c.id].days ?? []).length === 0);
+    if (noDay) {
+      setResult({ success: false, message: `Coche le ou les jours où tu peux venir à ${noDay.name}.` });
+      return;
+    }
+    const noSlot = conventions.find((c) => picks[c.id]?.role === "animation" && (picks[c.id].slots ?? []).length === 0);
+    if (noSlot) {
+      setResult({ success: false, message: `Indique tes horaires préférés pour animer à ${noSlot.name}.` });
+      return;
+    }
     try {
       const { data } = await submit({
         variables: {
@@ -198,6 +239,8 @@ function ConventionsPage() {
               role: pick.role,
               travel: pick.travel,
               transport: pick.transport.trim(),
+              days: pick.days ?? [],
+              slots: pick.role === "animation" ? pick.slots ?? [] : [],
             })),
             animation: animates ? animation.trim() : "",
             comment: comment.trim(),
@@ -332,6 +375,32 @@ function ConventionsPage() {
                             </div>
                           ) : (
                             <p className={formStyles.hint}>Pour cette convention, on cherche : {NEEDS[c.needs].toLowerCase()}.</p>
+                          )}
+                          {(c.days ?? []).length > 1 && (
+                            <div className={formStyles.formField}>
+                              <span className={formStyles.label}>Les jours où je peux venir</span>
+                              <div className={styles.options}>
+                                {c.days.map((day) => (
+                                  <label key={day.date} className={formStyles.checkbox}>
+                                    <input type="checkbox" checked={(pick.days ?? []).includes(day.date)} onChange={() => flip(c.id, "days", day.date)} />
+                                    <span>{day.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {pick.role === "animation" && (
+                            <div className={formStyles.formField}>
+                              <span className={formStyles.label}>Mes horaires préférés pour animer</span>
+                              <div className={styles.options}>
+                                {Object.entries(SLOTS).map(([value, label]) => (
+                                  <label key={value} className={formStyles.checkbox}>
+                                    <input type="checkbox" checked={(pick.slots ?? []).includes(value)} onChange={() => flip(c.id, "slots", value)} />
+                                    <span>{label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
                           )}
                           <div className={formStyles.row}>
                             <div className={formStyles.formField}>
