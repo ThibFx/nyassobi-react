@@ -12,6 +12,8 @@ export const GET_CONVENTIONS = gql`
       name
       city
       dates
+      startDate
+      endDate
       needs
       open
       days {

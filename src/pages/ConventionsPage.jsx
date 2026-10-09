@@ -70,9 +70,77 @@ function readReturn() {
   return { session: session || storage("get"), error };
 }
 
+const MONTH = new Intl.DateTimeFormat("fr-FR", { month: "short" });
+
+/** « 2026-10-17 » → date locale, sans décalage de fuseau. */
+function parseDay(iso) {
+  const [year, month, day] = (iso ?? "").split("-").map(Number);
+  return year && month && day ? new Date(year, month - 1, day) : null;
+}
+
+/** « 17–18 » sur « oct. » : la date se lit d'un coup d'œil. Le texte complet est à côté. */
+function DateTile({ start, end }) {
+  const from = parseDay(start);
+  const to = parseDay(end) ?? from;
+  if (!from) return null;
+  const sameMonth = from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear();
+  const days = from.getTime() === to.getTime() ? `${from.getDate()}` : `${from.getDate()}–${to.getDate()}`;
+  return (
+    <span className={styles.dateTile} aria-hidden="true">
+      <span className={styles.dateDays}>{days}</span>
+      <span className={styles.dateMonth}>{sameMonth ? MONTH.format(from) : `${MONTH.format(from)}–${MONTH.format(to)}`}</span>
+      <span className={styles.dateYear}>{to.getFullYear()}</span>
+    </span>
+  );
+}
+
+/** « Dans 12 jours », « Demain », « En ce moment »… */
+function countdown(start, end) {
+  const from = parseDay(start);
+  const to = parseDay(end) ?? from;
+  if (!from) return "";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((from - today) / 86400000);
+  if (days > 1) return `Dans ${days} jours`;
+  if (days === 1) return "Demain";
+  if (days === 0) return "Aujourd'hui";
+  return today <= to ? "En ce moment" : "";
+}
+
+/** Nom, dates, ville et état d'une convention : le haut de sa fiche. */
+function ConventionSummary({ convention, heading = false }) {
+  const { name, city, dates, needs, open, startDate, endDate } = convention;
+  const Name = heading ? "h3" : "span";
+  const soon = countdown(startDate, endDate);
+  return (
+    <span className={styles.summary}>
+      <DateTile start={startDate} end={endDate} />
+      <span className={styles.summaryText}>
+        <Name className={styles.name}>{name}</Name>
+        <span className={styles.meta}>
+          {dates}
+          {city && ` · ${city}`}
+        </span>
+        <span className={styles.badges}>
+          {open ? (
+            <span className={`${styles.badge} ${styles.badgeOpen}`}>Inscriptions ouvertes</span>
+          ) : (
+            <span className={`${styles.badge} ${styles.badgeClosed}`}>Équipe complète</span>
+          )}
+          <span className={styles.badge}>{NEEDS[needs] ?? needs}</span>
+          {soon && <span className={`${styles.badge} ${styles.badgeSoon}`}>{soon}</span>}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 /** Ce que le CA a ajouté : description, lien, affiche ou photos, annonces. */
-function ConventionInfo({ convention }) {
-  const { name, description, link, images = [], news = [] } = convention;
+function ConventionInfo({ convention, skipPoster = false }) {
+  const { name, description, link, news = [] } = convention;
+  // L'affiche est déjà en tête de fiche quand skipPoster est vrai.
+  const images = (convention.images ?? []).slice(skipPoster ? 1 : 0);
   if (!description && !link && images.length === 0 && news.length === 0) return null;
   return (
     <div className={styles.info}>
@@ -280,17 +348,16 @@ function ConventionsPage() {
               <>
                 <ul className={styles.list}>
                   {conventions.map((c) => (
-                    <li key={c.id} className={styles.item}>
-                      <span className={styles.name}>{c.name}</span>
-                      <span className={styles.meta}>
-                        {c.dates}
-                        {c.city && ` · ${c.city}`}
-                      </span>
-                      <span className={styles.badges}>
-                        <span className={styles.badge}>{NEEDS[c.needs] ?? c.needs}</span>
-                        {!c.open && <span className={`${styles.badge} ${styles.badgeClosed}`}>Équipe complète</span>}
-                      </span>
-                      <ConventionInfo convention={c} />
+                    <li key={c.id} className={`${styles.card} ${c.open ? "" : styles.cardClosed}`}>
+                      <div className={styles.cardHead}>
+                        <ConventionSummary convention={c} heading />
+                        {c.images?.[0] && (
+                          <a href={c.images[0]} target="_blank" rel="noopener noreferrer" className={styles.poster}>
+                            <img src={c.images[0]} alt={`Affiche de ${c.name}`} loading="lazy" />
+                          </a>
+                        )}
+                      </div>
+                      <ConventionInfo convention={c} skipPoster />
                     </li>
                   ))}
                 </ul>
@@ -340,18 +407,11 @@ function ConventionsPage() {
                   const closed = !c.open && !pick;
                   const fid = `${ids}-${c.id}`;
                   return (
-                    <fieldset key={c.id} className={`${styles.convention} ${pick ? styles.conventionPicked : ""}`} disabled={closed}>
+                    <fieldset key={c.id} className={`${styles.card} ${styles.convention} ${pick ? styles.conventionPicked : ""}`} disabled={closed}>
                       <legend className={styles.legend}>
-                        <label className={formStyles.checkbox}>
+                        <label className={`${formStyles.checkbox} ${styles.pick}`}>
                           <input type="checkbox" checked={Boolean(pick)} onChange={() => toggle(c)} disabled={closed} />
-                          <span>
-                            <span className={styles.name}>{c.name}</span>
-                            <span className={styles.meta}>
-                              {c.dates}
-                              {c.city && ` · ${c.city}`}
-                              {closed && " · équipe complète"}
-                            </span>
-                          </span>
+                          <ConventionSummary convention={c} />
                         </label>
                       </legend>
 

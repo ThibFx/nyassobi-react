@@ -16,26 +16,107 @@
   background: rgba(194, 65, 12, 0.12);
 }
 
+$orange: #ed5e24;
+$orange-dark: #c2410c;
+$teal: #27c7b5;
+$teal-dark: #0f766e;
+
 .list {
   list-style: none;
   max-width: 760px;
   margin: 1.5rem auto;
   padding: 0;
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.item {
+// Une fiche par convention, la même avant et après la connexion.
+.card {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.9rem 1.1rem;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.06);
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 2px solid rgba($orange, 0.18);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba($orange, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cardClosed {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+
+  .dateTile {
+    background: #9ca3af;
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.summaryText {
+  min-width: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+// Pastille de date, aux couleurs du site.
+.dateTile {
+  flex: none;
+  width: 4.6rem;
+  padding: 0.55rem 0.25rem 0.5rem;
+  display: grid;
+  justify-items: center;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #f97a3d, $orange-dark);
+  line-height: 1.05;
+  text-align: center;
+
+  // Le site colore tous les span en gris : la pastille garde son blanc.
+  &,
+  span {
+    color: #fff;
+  }
+}
+
+.dateDays {
+  font-family: "Concert One", sans-serif;
+  font-size: 1.45rem;
+  white-space: nowrap;
+}
+
+.dateMonth {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dateYear {
+  font-size: 0.72rem;
+  opacity: 0.85;
 }
 
 .name {
   display: block;
-  font-weight: 700;
+  margin: 0;
+  font-family: "Concert One", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.15;
+  color: $orange-dark;
+  overflow-wrap: anywhere;
 }
 
 .meta {
@@ -47,24 +128,99 @@
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
 }
 
 .badge {
   display: inline-block;
   padding: 0.15rem 0.7rem;
   border-radius: 999px;
-  background: rgba(237, 94, 36, 0.12);
-  color: #c2410c;
-  font-size: 0.85rem;
+  background: rgba($orange, 0.12);
+  color: $orange-dark;
+  font-size: 0.82rem;
   font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badgeOpen {
+  background: rgba($teal, 0.16);
+  color: $teal-dark;
 }
 
 .badgeClosed {
   background: rgba(0, 0, 0, 0.08);
   color: inherit;
-  opacity: 0.8;
+  opacity: 0.85;
+}
+
+.badgeSoon {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba($orange, 0.45);
+}
+
+// L'affiche en vignette ; les autres images restent dans la galerie.
+.poster {
+  flex: none;
+  display: block;
+  width: 6rem;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+}
+
+// Sur téléphone, l'affiche passe sous le titre, en bandeau.
+@media (max-width: 520px) {
+  .card {
+    padding: 0.85rem;
+  }
+
+  .cardHead {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .summary {
+    gap: 0.7rem;
+  }
+
+  .dateTile {
+    width: 3.6rem;
+    padding: 0.45rem 0.2rem 0.4rem;
+  }
+
+  .dateDays {
+    font-size: 1.1rem;
+  }
+
+  .dateMonth {
+    font-size: 0.68rem;
+  }
+
+  .name {
+    font-size: 1.15rem;
+  }
+
+  .meta {
+    font-size: 0.88rem;
+  }
+
+  .poster {
+    width: 100%;
+
+    img {
+      aspect-ratio: 16 / 9;
+      max-height: 11rem;
+    }
+  }
 }
 
 .login {
@@ -89,9 +245,6 @@
 
 .convention {
   margin: 0;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
   min-width: 0;
 
   &:disabled {
@@ -100,14 +253,25 @@
 }
 
 .conventionPicked {
-  border-color: #ed5e24;
-  box-shadow: 0 0 0 1px #ed5e24;
+  border-color: $orange;
+  box-shadow: 0 0 0 2px rgba($orange, 0.25), 0 6px 18px rgba($orange, 0.12);
 }
 
 .legend {
   padding: 0;
   float: left;
   width: 100%;
+}
+
+// La case à cocher devant la fiche : toute la fiche est cliquable.
+.pick {
+  align-items: flex-start;
+  width: 100%;
+  cursor: pointer;
+
+  input {
+    margin-top: 1.6rem;
+  }
 }
 
 .details {
@@ -126,7 +290,8 @@
 .info {
   display: grid;
   gap: 0.6rem;
-  margin-top: 0.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed rgba($orange, 0.3);
 }
 
 // Le texte du CA garde ses retours à la ligne.
