@@ -282,9 +282,15 @@ function ConventionsPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const missing = conventions.find((c) => picks[c.id] && (!picks[c.id].role || !picks[c.id].travel));
-    if (missing) {
-      setResult({ success: false, message: `Indique ton rôle et ton temps de trajet pour ${missing.name}.` });
+    // Les animations se font à distance : le trajet ne concerne que le staff du stand.
+    const noRole = conventions.find((c) => picks[c.id] && !picks[c.id].role);
+    if (noRole) {
+      setResult({ success: false, message: `Indique ton rôle pour ${noRole.name}.` });
+      return;
+    }
+    const noTravel = conventions.find((c) => picks[c.id]?.role === "staff" && !picks[c.id].travel);
+    if (noTravel) {
+      setResult({ success: false, message: `Indique ton temps de trajet pour ${noTravel.name}.` });
       return;
     }
     const noDay = conventions.find((c) => picks[c.id] && (picks[c.id].days ?? []).length === 0);
@@ -305,8 +311,8 @@ function ConventionsPage() {
             choices: Object.entries(picks).map(([conventionId, pick]) => ({
               conventionId: Number(conventionId),
               role: pick.role,
-              travel: pick.travel,
-              transport: pick.transport.trim(),
+              travel: pick.role === "staff" ? pick.travel : "",
+              transport: pick.role === "staff" ? pick.transport.trim() : "",
               days: pick.days ?? [],
               slots: pick.role === "animation" ? pick.slots ?? [] : [],
             })),
@@ -398,7 +404,7 @@ function ConventionsPage() {
                   </button>
                 </p>
                 <p className={formStyles.hint}>
-                  Coche les conventions où tu peux venir. On ne te demande jamais ta ville : seulement ton temps de trajet.
+                  Coche les conventions qui t'intéressent. Les animations se font à distance ; pour le staff du stand, on te demande ton temps de trajet, jamais ta ville.
                 </p>
 
                 {conventions.map((c) => {
@@ -462,10 +468,14 @@ function ConventionsPage() {
                               </div>
                             </div>
                           )}
+                          {pick.role === "animation" && (
+                            <p className={formStyles.hint}>Les animations se font à distance : pas de trajet à prévoir.</p>
+                          )}
+                          {pick.role === "staff" && (
                           <div className={formStyles.row}>
                             <div className={formStyles.formField}>
                               <label htmlFor={`${fid}-travel`} className={formStyles.label}>
-                                Temps de trajet
+                                Temps de trajet jusqu'au stand
                               </label>
                               <select id={`${fid}-travel`} className={formStyles.input} value={pick.travel} onChange={(e) => change(c.id, "travel", e.target.value)}>
                                 <option value="">Choisir…</option>
@@ -491,6 +501,7 @@ function ConventionsPage() {
                               />
                             </div>
                           </div>
+                          )}
                         </div>
                       )}
                     </fieldset>
