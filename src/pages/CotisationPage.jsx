@@ -8,6 +8,7 @@ import buttonStyles from "../components/NyassoButtonTwo.module.scss";
 import TitleNyasso from "../TitleNyasso";
 import Footer from "../Footer";
 import Loader from "../components/Loader";
+import AdhesionSteps from "../components/AdhesionSteps";
 import { useNyassobiSettings } from "../hooks/useNyassobiSettings";
 import { GET_COTISATION, writeContext } from "../api/nyassobiMembership";
 
@@ -21,8 +22,14 @@ const RETOURS = {
 /** Messages au retour de Discord, une fois la cotisation payée. */
 const RETOURS_DISCORD = {
   "discord-annule": { error: false, text: "Tu n'as pas validé sur Discord. Tu peux recommencer quand tu veux avec le bouton ci-dessous." },
-  "discord-erreur": { error: true, text: "Discord n'a pas pu t'ajouter au serveur. Réessaie dans quelques minutes, ou réponds à l'e-mail de bienvenue pour que le bureau te donne ton rôle." },
-  "discord-autre": { error: true, text: "Ce lien a déjà servi à un autre compte Discord. Connecte-toi avec ce compte-là, ou réponds à l'e-mail de bienvenue." },
+  "discord-erreur": {
+    error: true,
+    text: "Discord n'a pas pu t'ajouter au serveur. Réessaie dans quelques minutes, ou réponds à l'e-mail de bienvenue pour que le bureau te donne ton rôle.",
+  },
+  "discord-autre": {
+    error: true,
+    text: "Ce lien a déjà servi à un autre compte Discord. Connecte-toi avec ce compte-là, ou réponds à l'e-mail de bienvenue.",
+  },
 };
 
 /**
@@ -57,6 +64,12 @@ function CotisationPage() {
   let title = "Ta cotisation";
   if (cotisation?.status === "payee") title = "C'est réglé, bienvenue !";
 
+  // Étape de la frise : la cotisation tant qu'elle n'est pas payée, puis
+  // Discord s'il reste à le rejoindre.
+  let step = null;
+  if (cotisation?.status === "a_payer") step = 2;
+  if (cotisation?.status === "payee") step = cotisation.discordJoinUrl && !(cotisation.discordJoined || retour === "discord-ok") ? 3 : 4;
+
   return (
     <>
       <div className={pageStyles.pageViewport}>
@@ -64,6 +77,8 @@ function CotisationPage() {
           <TitleNyasso title={title} />
           <div className={pageStyles.simpleContent}>
             {loading && <Loader label="Chargement de ta cotisation..." />}
+
+            {step !== null && <AdhesionSteps current={step} title="Où en est ton adhésion" />}
 
             {error && <p className={styles.notice}>La page n'a pas pu être chargée. Vérifie ta connexion et recharge la page.</p>}
 
@@ -95,7 +110,10 @@ function CotisationPage() {
                 ) : (
                   <>
                     {RETOURS_DISCORD[retour] && (
-                      <p className={`${styles.notice} ${RETOURS_DISCORD[retour].error ? styles.noticeError : ""}`} role={RETOURS_DISCORD[retour].error ? "alert" : "status"}>
+                      <p
+                        className={`${styles.notice} ${RETOURS_DISCORD[retour].error ? styles.noticeError : ""}`}
+                        role={RETOURS_DISCORD[retour].error ? "alert" : "status"}
+                      >
                         {RETOURS_DISCORD[retour].text}
                       </p>
                     )}
@@ -119,7 +137,10 @@ function CotisationPage() {
                   </p>
                 )}
                 {!waiting && RETOURS[retour] && (
-                  <p className={`${styles.notice} ${RETOURS[retour].error ? styles.noticeError : ""}`} role={RETOURS[retour].error ? "alert" : "status"}>
+                  <p
+                    className={`${styles.notice} ${RETOURS[retour].error ? styles.noticeError : ""}`}
+                    role={RETOURS[retour].error ? "alert" : "status"}
+                  >
                     {RETOURS[retour].text}
                   </p>
                 )}
@@ -129,15 +150,20 @@ function CotisationPage() {
                   {cotisation.amount} €{cotisation.reducedRate && <span className={styles.reduced}>tarif réduit</span>}
                 </p>
 
-                <div className={buttonStyles.nyassoBtn}>
+                <p className={styles.methodsTitle}>Comment veux-tu payer ?</p>
+                <div className={styles.methods}>
                   {cotisation.cardUrl && (
-                    <a href={cotisation.cardUrl} className={buttonStyles.button}>
-                      Payer par carte
+                    <a href={cotisation.cardUrl} className={styles.method}>
+                      <span className={styles.methodName}>Carte bancaire</span>
+                      <span className={styles.methodText}>Par HelloAsso, la plateforme des associations. Aucun frais pour Nyassobi.</span>
+                      <span className={styles.methodAction}>Payer {cotisation.amount} € par carte</span>
                     </a>
                   )}
                   {cotisation.paypalUrl && (
-                    <a href={cotisation.paypalUrl} className={`${buttonStyles.button} ${styles.paypal}`}>
-                      Payer avec PayPal
+                    <a href={cotisation.paypalUrl} className={`${styles.method} ${styles.methodPaypal}`}>
+                      <span className={styles.methodName}>PayPal</span>
+                      <span className={styles.methodText}>Avec ton compte PayPal, en quelques clics.</span>
+                      <span className={styles.methodAction}>Payer {cotisation.amount} € avec PayPal</span>
                     </a>
                   )}
                 </div>

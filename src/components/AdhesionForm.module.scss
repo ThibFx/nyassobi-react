@@ -199,3 +199,117 @@
   font-weight: 700;
   color: #1a8f82;
 }
+
+// Trois sections (toi, ta cotisation, tes engagements) : un titre suffit à
+// les séparer, sans encadré.
+.section {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.sectionTitle {
+  padding: 0;
+  margin-bottom: 1rem;
+  font-family: "Concert One", sans-serif;
+  font-size: 1.35rem;
+  color: #ed5e24;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 3px;
+    margin-top: 0.3rem;
+    border-radius: 3px;
+    background: #27c7b5;
+  }
+}
+
+.privacy {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: rgba(39, 199, 181, 0.12);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+// Tarifs en cartes : toute la carte est cliquable (cible large au doigt).
+.rateCards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.rateCard {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+  padding: 1.1rem 1.25rem 1.1rem 3rem;
+  border-radius: 16px;
+  border: 2px solid rgba(127, 127, 127, 0.3);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+  input {
+    position: absolute;
+    left: 1.1rem;
+    top: 1.45rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    accent-color: #ed5e24;
+  }
+
+  &:hover {
+    border-color: rgba(237, 94, 36, 0.6);
+  }
+
+  &:has(input:checked) {
+    border-color: #ed5e24;
+    background: rgba(237, 94, 36, 0.07);
+    box-shadow: 0 8px 20px rgba(237, 94, 36, 0.15);
+  }
+
+  &:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px rgba(237, 94, 36, 0.45);
+  }
+}
+
+// Un mineur relève d'office du tarif réduit : le tarif normal reste visible, grisé.
+.rateCardDisabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+
+  &:hover {
+    border-color: rgba(127, 127, 127, 0.3);
+  }
+}
+
+.rateAmount {
+  font-family: "Concert One", sans-serif;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: #ed5e24;
+}
+
+.rateName {
+  font-weight: 700;
+}
+
+.rateWho {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rateCard {
+    transition: none;
+  }
+}

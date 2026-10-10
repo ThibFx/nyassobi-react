@@ -1,0 +1,133 @@
+// Couleurs en transparence ou héritées : la frise sert sur la page Rejoindre
+// (fond clair) comme sur la page de cotisation (fond sombre).
+
+.steps {
+  max-width: 760px;
+  margin: 1.5rem auto 2rem;
+  text-align: left;
+}
+
+.heading {
+  margin: 0 0 1rem;
+  font-family: "Concert One", sans-serif;
+  font-size: 1.35rem;
+  color: #ed5e24;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+// Trait qui relie une étape à la suivante, vertical sur téléphone.
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 1.1rem;
+  top: 2.4rem;
+  bottom: -1rem;
+  width: 2px;
+  transform: translateX(-50%);
+  background: currentColor;
+  opacity: 0.2;
+}
+
+.marker {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-family: "Concert One", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.body {
+  display: grid;
+  gap: 0.15rem;
+  padding-top: 0.2rem;
+}
+
+.title {
+  font-weight: 700;
+}
+
+.text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  opacity: 0.75;
+}
+
+.done .marker {
+  opacity: 1;
+  border-color: #27c7b5;
+  background: #27c7b5;
+  color: #fff;
+}
+
+.done:not(:last-child)::after {
+  background: #27c7b5;
+  opacity: 1;
+}
+
+.active .marker {
+  opacity: 1;
+  border-color: #ed5e24;
+  background: #ed5e24;
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(237, 94, 36, 0.22);
+}
+
+.active .title {
+  color: #ed5e24;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// Assez de place : les étapes se lisent de gauche à droite, trait horizontal.
+@media (min-width: 640px) {
+  .list {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .step {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .step:not(:last-child)::after {
+    left: 2.9rem;
+    right: -0.6rem;
+    top: 1.1rem;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+
+  .body {
+    padding-top: 0;
+  }
+}
