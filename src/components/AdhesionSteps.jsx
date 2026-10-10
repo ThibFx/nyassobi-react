@@ -1,10 +1,10 @@
 import styles from "./AdhesionSteps.module.scss";
 
 const STEPS = [
-  { title: "Ta demande", text: "Ce formulaire, deux minutes." },
-  { title: "Le vote du CA", text: "Il ne voit que ton pseudo. Réponse par e-mail." },
-  { title: "Ta cotisation", text: "En ligne, avec le lien reçu par e-mail." },
-  { title: "Bienvenue !", text: "Ton rôle « Adhérent » sur notre Discord." },
+  { title: "Ta demande", text: "Ce formulaire, deux minutes.", doneText: "Bien reçue." },
+  { title: "Le vote du CA", text: "Il ne voit que ton pseudo. Réponse par e-mail.", doneText: "Le CA a dit oui !" },
+  { title: "Ta cotisation", text: "En ligne, avec le lien reçu par e-mail.", doneText: "Bien reçue, merci !" },
+  { title: "Bienvenue !", text: "Ton rôle « Adhérent » sur notre Discord.", doneText: "Tu es des nôtres." },
 ];
 
 /**
@@ -34,7 +34,7 @@ function AdhesionSteps({ current = 0, title = "Comment ça se passe" }) {
                   {step.title}
                   {done && <span className={styles.srOnly}> (fait)</span>}
                 </span>
-                <span className={styles.text}>{step.text}</span>
+                <span className={styles.text}>{done ? step.doneText : step.text}</span>
               </span>
             </li>
           );

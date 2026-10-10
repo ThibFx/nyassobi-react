@@ -155,7 +155,7 @@ function CotisationPage() {
                   {cotisation.cardUrl && (
                     <a href={cotisation.cardUrl} className={styles.method}>
                       <span className={styles.methodName}>Carte bancaire</span>
-                      <span className={styles.methodText}>Par HelloAsso, la plateforme des associations. Aucun frais pour Nyassobi.</span>
+                      <span className={styles.methodText}>Paiement sécurisé par HelloAsso, la plateforme des associations.</span>
                       <span className={styles.methodAction}>Payer {cotisation.amount} € par carte</span>
                     </a>
                   )}
